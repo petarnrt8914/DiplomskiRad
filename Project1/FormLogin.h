@@ -1,9 +1,9 @@
 ﻿#pragma once
+#include "DBAccess.h"
 
 
-
-namespace Project1 {
-
+namespace DiplomskiRad
+{
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -11,6 +11,7 @@ namespace Project1 {
 	using namespace System::Data;
 	using namespace System::Drawing;
 	using namespace System::Data::OleDb;
+	using namespace System::Text::RegularExpressions;
 
 	/// <summary>
 	/// Summary for FormLogin
@@ -19,6 +20,7 @@ namespace Project1 {
 	{
 	protected:
 		OleDbConnection ^conn;
+		static Regex ^usernameRegex = gcnew Regex("[a-zA-Z]([-_.]?[a-zA-Z0-9])+");
 
 	public:
 		FormLogin(void)
@@ -27,6 +29,7 @@ namespace Project1 {
 			//
 			//TODO: Add the constructor code here
 			//
+			DBAccess::SetConn();
 		}
 
 	protected:
@@ -35,6 +38,10 @@ namespace Project1 {
 		/// </summary>
 		~FormLogin()
 		{
+			if (conn) {
+				if(conn->State != ConnectionState::Closed) conn->Close();
+				delete conn;
+			}
 			if (components) delete components;
 		}
 
@@ -141,6 +148,9 @@ namespace Project1 {
 
 		}
 #pragma endregion
+
 	private: System::Void btnLogin_Click(System::Object^  sender, System::EventArgs^  e);
+					 void HandleResponse(DBAccess::Response);
+					 bool IsUsernameValid(String^);
 };
 }

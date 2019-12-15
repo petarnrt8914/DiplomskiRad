@@ -1,21 +1,26 @@
 ﻿#pragma once
+#include "DBAccess.h"
 
-namespace Project1 {
-
+namespace DiplomskiRad
+{
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace System::Data::OleDb;
 
 	/// <summary>
-	/// Summary for MyForm1
+	/// Summary for CalculationForm
 	/// </summary>
-	public ref class MyForm1 : public System::Windows::Forms::Form
+	public ref class CalculationForm : public System::Windows::Forms::Form
 	{
+	private:
+		int userID;
+
 	public:
-		MyForm1(void)
+		CalculationForm(int userID)
 		{
 			InitializeComponent();
 			//
@@ -27,7 +32,7 @@ namespace Project1 {
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
-		~MyForm1()
+		~CalculationForm()
 		{
 			if (components)
 			{
@@ -50,7 +55,7 @@ namespace Project1 {
 		{
 			this->components = gcnew System::ComponentModel::Container();
 			this->Size = System::Drawing::Size(300,300);
-			this->Text = L"MyForm1";
+			this->Text = L"CalculationForm";
 			this->Padding = System::Windows::Forms::Padding(0);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 		}

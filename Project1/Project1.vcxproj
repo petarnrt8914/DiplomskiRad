@@ -25,6 +25,7 @@
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>Project1</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectName>DiplomskiRad</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -132,7 +133,7 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FormLogin.cpp" />
-    <ClCompile Include="MyForm1.cpp" />
+    <ClCompile Include="CalculationForm.cpp" />
     <ClCompile Include="DBAccess.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
@@ -147,7 +148,7 @@
     <ClInclude Include="FormLogin.h">
       <FileType>CppForm</FileType>
     </ClInclude>
-    <ClInclude Include="MyForm1.h">
+    <ClInclude Include="CalculationForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="DBAccess.h" />
