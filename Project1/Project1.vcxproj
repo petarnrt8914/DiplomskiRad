@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,7 +23,7 @@
     <ProjectGuid>{59536402-A5F4-4D18-832C-5B377204CA9F}</ProjectGuid>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
-    <RootNamespace>Project1</RootNamespace>
+    <RootNamespace>DiplomskiRad</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>DiplomskiRad</ProjectName>
   </PropertyGroup>
@@ -131,20 +131,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Calculation.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FormLogin.cpp" />
     <ClCompile Include="CalculationForm.cpp" />
     <ClCompile Include="DBAccess.cpp" />
+    <ClCompile Include="Point.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Calculation.h" />
     <ClInclude Include="FormLogin.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -152,9 +157,13 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="DBAccess.h" />
+    <ClInclude Include="Point.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CalculationForm.resx">
+      <DependentUpon>CalculationForm.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormLogin.resx">
       <DependentUpon>FormLogin.h</DependentUpon>
       <SubType>Designer</SubType>

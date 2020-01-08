@@ -5,6 +5,7 @@
 namespace DiplomskiRad
 {
 	using namespace System;
+	//using namespace System::Configuration;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
 	using namespace System::Windows::Forms;
@@ -20,7 +21,8 @@ namespace DiplomskiRad
 	{
 	protected:
 		OleDbConnection ^conn;
-		static Regex ^usernameRegex = gcnew Regex("[a-zA-Z]([-_.]?[a-zA-Z0-9])+");
+		static Regex ^usernameRegex = gcnew Regex(R"(\A[a-zA-Z]([-_.]?[a-zA-Z0-9])+\Z)");
+		//static RegexStringValidator^ usernameValidator = gcnew RegexStringValidator("[a-zA-Z]([-_.]?[a-zA-Z0-9])+");
 
 	public:
 		FormLogin(void)
@@ -30,18 +32,14 @@ namespace DiplomskiRad
 			//TODO: Add the constructor code here
 			//
 			DBAccess::SetConn();
+
 		}
 
 	protected:
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
-		~FormLogin()
-		{
-			if (conn) {
-				if(conn->State != ConnectionState::Closed) conn->Close();
-				delete conn;
-			}
+		~FormLogin() {
 			if (components) delete components;
 		}
 
@@ -143,14 +141,17 @@ namespace DiplomskiRad
 			this->MinimumSize = System::Drawing::Size(300, 227);
 			this->Name = L"FormLogin";
 			this->Text = L"FormLogin";
+			this->Shown += gcnew System::EventHandler(this, &FormLogin::FormLogin_Shown);
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
 
-	private: System::Void btnLogin_Click(System::Object^  sender, System::EventArgs^  e);
-					 void HandleResponse(DBAccess::Response);
-					 bool IsUsernameValid(String^);
+	private:
+		Void FormLogin_Shown(Object^  sender, EventArgs^  e);
+		Void btnLogin_Click(Object^  sender, EventArgs^  e);
+		void HandleResponse(DBAccess::Response);
+		bool IsUsernameValid(String^);
 };
 }

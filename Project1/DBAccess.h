@@ -19,6 +19,8 @@ public:
 
 private:
 	static bool OpenConnection();
+	//static array<unsigned char>^ EncryptPassword(String^ password);
+	static String^ EncryptPassword(String^ password);
 
 public:
 	static bool SetConn();

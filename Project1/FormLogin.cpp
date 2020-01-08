@@ -1,5 +1,6 @@
 ﻿#include "FormLogin.h"
 #include "DBAccess.h"
+#include "CalculationForm.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
@@ -41,10 +42,16 @@ inline Void FormLogin::btnLogin_Click(Object ^sender, EventArgs ^e) {
 			break;
 		}
 	}
-	case DBAccess::Response::OK:
+	case DBAccess::Response::OK: {
 		// open calculation form with current user ID
-		MessageBox::Show("Opening with userID "+id);
+		//MessageBox::Show("Opening with userID "+id);
+		this->Hide();
+		Form ^f = gcnew CalculationForm(id);
+		f->ShowDialog();
+		delete f;
+		this->Show();
 		break;
+	}
 	default:
 		HandleResponse(response);
 	}
@@ -74,5 +81,18 @@ inline void FormLogin::HandleResponse(DBAccess::Response response) {
 
 inline bool FormLogin::IsUsernameValid(String ^ username) {
 	return usernameRegex->IsMatch(username) && username->Length <= 25 && username->Length >= 3;
+	//try {
+	//	usernameValidator->Validate(username);
+	//	return username->Length <= 25 && username->Length >= 3;
+	//}
+	//catch (Exception^) {
+	//	return false;
+	//}
+}
+
+inline Void DiplomskiRad::FormLogin::FormLogin_Shown(Object ^ sender, EventArgs ^ e) {
+	//making sure the window appears on top
+	this->TopMost = true;
+	this->TopMost = false;
 }
 
