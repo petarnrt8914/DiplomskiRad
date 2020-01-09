@@ -1,4 +1,5 @@
 #include "DBAccess.h"
+#include "LogRecord.h"
 
 using namespace System;
 using namespace System::Data;
@@ -81,10 +82,6 @@ DBAccess::Response DBAccess::LogIn(int& userID, String ^ username, String ^ pass
 				userID = static_cast<int>(reader["ID"]);
 				resp = Response::OK;
 			}
-			//else if (password==reader["password"]->ToString()) {
-			//	userID = static_cast<int>(reader["ID"]);
-			//	resp = Response::OK;
-			//}
 			else
 				resp = Response::WrongPassword;
 		}
@@ -122,14 +119,16 @@ DBAccess::Response DBAccess::SignUp(int& userID, String ^ username, String ^ pas
 	OleDbCommand ^cmdSelectUser = gcnew OleDbCommand(selectText, conn);
 	cmdSelectUser->Parameters->AddWithValue("username", username);
 	cmdSelectUser->Parameters->AddWithValue("password", EncryptPassword(password));
-	OleDbDataReader^ reader;
 	if (OpenConnection()) {
 		try {
 			resp = cmdSelectUser->ExecuteNonQuery()==1 ? Response::OK : Response::ConnectionFailed;
 			return resp;
 		}
+		catch (Exception^ ex) {
+			MessageBox::Show(ex->Message+'\n'+ex->StackTrace);
+		}
 		finally {
-			delete reader, cmdSelectUser;
+			delete cmdSelectUser;
 			conn->Close();
 		}
 	}
@@ -137,6 +136,59 @@ DBAccess::Response DBAccess::SignUp(int& userID, String ^ username, String ^ pas
 }
 
 
-DBAccess::Response DBAccess::UpdateLog(LogRecord *) {
-	throw gcnew NotImplementedException();
+DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
+	OleDbCommand ^cmdInsertLogRecord = gcnew OleDbCommand();
+	cmdInsertLogRecord->CommandText = ("INSERT INTO [LOG] ([date_time], [user_ID], [math_op_ID], [param_values]) "
+																		 "VALUES (?,?,?,?)");
+	cmdInsertLogRecord->Connection = conn;
+	//TODO otkrij kako da upises datetime u glupu bazu
+	// verovatno je do glupog formata........... naravno da jeste
+	String ^ dateString = record->getDateTime().ToString("yyyy-MM-dd HH:mm:ss");
+	cmdInsertLogRecord->Parameters->AddWithValue("date_time",		dateString							);
+	cmdInsertLogRecord->Parameters->AddWithValue("user_ID",			record->getUserID()			);
+	cmdInsertLogRecord->Parameters->AddWithValue("math_op_ID",	record->getOperationID());
+	cmdInsertLogRecord->Parameters->AddWithValue("param_values",record->getParameters()	);
+	if (OpenConnection()) {
+		try {
+			// TODO: NE RADI
+			Response resp = (cmdInsertLogRecord->ExecuteNonQuery()==1
+											 ? Response::OK
+											 : Response::ConnectionFailed);
+			return resp;
+		}
+		catch (Exception^ ex) {
+			MessageBox::Show(ex->Message+'\n'+ex->StackTrace);
+		}
+		finally {
+			delete cmdInsertLogRecord;
+			conn->Close();
+		}
+	}
+	else return Response::ConnectionFailed;
+}
+
+DBAccess::Response DBAccess::ReadMathOperations(Dictionary<String^, int>^ %mathOperations) {
+	String ^getOperationsText = "SELECT * FROM [MATH_OPERATION]";
+	OleDbCommand^ cmdGetOperations = gcnew OleDbCommand(getOperationsText, conn);
+	OleDbDataReader^ reader;
+	if (OpenConnection()) {
+		try {
+			auto operationsTemp = gcnew Dictionary<String^, int>();
+			reader = cmdGetOperations->ExecuteReader();
+			while (reader->Read()) {
+				operationsTemp->Add(reader["name"]->ToString(), (int)reader["ID"]);
+			}
+			mathOperations = operationsTemp;
+			return Response::OK;
+		}
+		catch (Exception^ ex) {
+
+			return Response::ConnectionFailed;
+		}
+		finally {
+			delete reader, cmdGetOperations, getOperationsText;
+			conn->Close();
+		}
+	}
+	else return Response::ConnectionFailed;
 }

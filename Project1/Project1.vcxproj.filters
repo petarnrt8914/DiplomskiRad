@@ -21,19 +21,16 @@
     <ClCompile Include="FormLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="User.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DBAccess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CalculationForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Point.cpp">
+    <ClCompile Include="Calculation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Calculation.cpp">
+    <ClCompile Include="LogRecord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,6 +53,9 @@
     <ClInclude Include="Calculation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LogRecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormLogin.resx">
@@ -64,10 +64,5 @@
     <EmbeddedResource Include="CalculationForm.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Log.mdb">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

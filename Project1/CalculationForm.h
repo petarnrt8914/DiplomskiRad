@@ -10,6 +10,7 @@ namespace DiplomskiRad
 	using namespace System::Data;
 	using namespace System::Drawing;
 	using namespace System::Data::OleDb;
+	using System::Collections::Generic::Dictionary;
 
 	/// <summary>
 	/// Summary for CalculationForm
@@ -18,14 +19,17 @@ namespace DiplomskiRad
 	{
 	protected:
 		int userID;
+		Dictionary<String^,int>^ mathOperations;
+		//get users
 
 	public:
 		CalculationForm(int userID) {
 			InitializeComponent();
-			//
-			//TODO: Add the constructor code here
-			//
+
 			this->userID = userID;
+			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
+				//mozda nesto
+			}
 		}
 
 	protected:
@@ -153,7 +157,7 @@ namespace DiplomskiRad
 			this->btnAddPoint->Location = System::Drawing::Point(22, 66);
 			this->btnAddPoint->Name = L"btnAddPoint";
 			this->btnAddPoint->Size = System::Drawing::Size(154, 27);
-			this->btnAddPoint->TabIndex = 6;
+			this->btnAddPoint->TabIndex = 2;
 			this->btnAddPoint->Text = L"Dodaj tačku";
 			this->btnAddPoint->UseVisualStyleBackColor = true;
 			this->btnAddPoint->Click += gcnew System::EventHandler(this, &CalculationForm::btnAddPoint_Click);
@@ -166,7 +170,7 @@ namespace DiplomskiRad
 			this->btnDeletePoints->Margin = System::Windows::Forms::Padding(4);
 			this->btnDeletePoints->Name = L"btnDeletePoints";
 			this->btnDeletePoints->Size = System::Drawing::Size(154, 28);
-			this->btnDeletePoints->TabIndex = 5;
+			this->btnDeletePoints->TabIndex = 4;
 			this->btnDeletePoints->Text = L"Obriši izabrane tačke";
 			this->btnDeletePoints->UseVisualStyleBackColor = true;
 			this->btnDeletePoints->Click += gcnew System::EventHandler(this, &CalculationForm::btnDeletePoints_Click);
@@ -197,8 +201,9 @@ namespace DiplomskiRad
 			this->txtNewPointY->Margin = System::Windows::Forms::Padding(4);
 			this->txtNewPointY->Name = L"txtNewPointY";
 			this->txtNewPointY->Size = System::Drawing::Size(66, 23);
-			this->txtNewPointY->TabIndex = 2;
+			this->txtNewPointY->TabIndex = 1;
 			this->txtNewPointY->TextChanged += gcnew System::EventHandler(this, &CalculationForm::txtNewPointY_TextChanged);
+			this->txtNewPointY->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::txtNewPoint_PreviewKeyDown);
 			// 
 			// txtNewPointX
 			// 
@@ -206,8 +211,9 @@ namespace DiplomskiRad
 			this->txtNewPointX->Margin = System::Windows::Forms::Padding(4);
 			this->txtNewPointX->Name = L"txtNewPointX";
 			this->txtNewPointX->Size = System::Drawing::Size(66, 23);
-			this->txtNewPointX->TabIndex = 1;
+			this->txtNewPointX->TabIndex = 0;
 			this->txtNewPointX->TextChanged += gcnew System::EventHandler(this, &CalculationForm::txtNewPointX_TextChanged);
+			this->txtNewPointX->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::txtNewPoint_PreviewKeyDown);
 			// 
 			// listPoints
 			// 
@@ -221,7 +227,7 @@ namespace DiplomskiRad
 			this->listPoints->SelectionMode = System::Windows::Forms::SelectionMode::MultiExtended;
 			this->listPoints->Size = System::Drawing::Size(154, 180);
 			this->listPoints->Sorted = true;
-			this->listPoints->TabIndex = 0;
+			this->listPoints->TabIndex = 3;
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
 			// 
 			// tabPage2
@@ -261,5 +267,6 @@ namespace DiplomskiRad
 		System::Void btnAddPoint_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
+		System::Void txtNewPoint_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
 };
 }

@@ -1,13 +1,14 @@
 #pragma once
+#include "LogRecord.h"
 
-using namespace System;
-
-class LogRecord;
+using System::String;
+using System::Data::OleDb::OleDbConnection;
+using System::Collections::Generic::Dictionary;
 
 ref class DBAccess abstract
 {
 private:
-	static System::Data::OleDb::OleDbConnection^ conn;
+	static OleDbConnection^ conn;
 public:
 	enum class Response {	
 		OK=0, 
@@ -28,6 +29,7 @@ public:
 public:
 	static Response LogIn(int& id, String^ name, String^ pass);
 	static Response SignUp(int& id, String^ name, String^ pass);
-	static Response UpdateLog(LogRecord*);
+	static Response UpdateLog(LogRecord^);
+	static Response ReadMathOperations(Dictionary<String^,int>^%);
 };
 

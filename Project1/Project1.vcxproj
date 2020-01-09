@@ -132,12 +132,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Calculation.cpp" />
+    <ClCompile Include="LogRecord.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FormLogin.cpp" />
     <ClCompile Include="CalculationForm.cpp" />
     <ClCompile Include="DBAccess.cpp" />
-    <ClCompile Include="Point.cpp" />
-    <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -157,6 +156,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="DBAccess.h" />
+    <ClInclude Include="LogRecord.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
@@ -168,9 +168,6 @@
       <DependentUpon>FormLogin.h</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Log.mdb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,6 +4,9 @@
 .gitignore
 .gitattributes
 
+#Database
+Project/Log*
+
 # User-specific files
 *.suo
 *.user

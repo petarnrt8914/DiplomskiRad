@@ -9,7 +9,10 @@ public:
 	static float LagrangeInterpolation(array<PointF^>^ points, int size, float newPointX);
 
 	//Baricentric form
-	static float LagrangeInterpolation(PointF* points, int pointsSize, 
-																		 float* baricentricWeights, int weightsSize);
+	static float LagrangeInterpolation(array<PointF^>^ points, int pointsCount,
+																		 array<double>^ baricentricWeights, float newPointX);
+
+
+
 };
 
