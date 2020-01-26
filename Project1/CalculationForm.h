@@ -21,10 +21,12 @@ namespace DiplomskiRad
 		int userID;
 		Dictionary<String^,int>^ mathOperations;
 		//get users
+		float panelClickedX, panelClickedY;
 
 	public:
 		CalculationForm(int userID) {
 			InitializeComponent();
+			//currentGraphState = gcnew Drawing2D::GraphicsState();
 
 			this->userID = userID;
 			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
@@ -49,7 +51,8 @@ namespace DiplomskiRad
 	private: System::Windows::Forms::TextBox^  txtNewPointY;
 	private: System::Windows::Forms::TextBox^  txtNewPointX;
 	private: System::Windows::Forms::ListBox^  listPoints;
-	private: System::Windows::Forms::Panel^  pnlGraph;
+	private: System::Windows::Forms::Panel^  pnlLagrangeGraph;
+
 	private: System::Windows::Forms::ContextMenuStrip^  contextMenuAddPoint;
 	private: System::Windows::Forms::ToolStripMenuItem^  itemAddPointHere;
 	private: System::Windows::Forms::ToolStripMenuItem^  itemCancel;
@@ -70,7 +73,7 @@ namespace DiplomskiRad
 			this->components = (gcnew System::ComponentModel::Container());
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
 			this->tabLagrangeInterpolation = (gcnew System::Windows::Forms::TabPage());
-			this->pnlGraph = (gcnew System::Windows::Forms::Panel());
+			this->pnlLagrangeGraph = (gcnew System::Windows::Forms::Panel());
 			this->contextMenuAddPoint = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
 			this->itemAddPointHere = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->itemCancel = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -102,7 +105,7 @@ namespace DiplomskiRad
 			// tabLagrangeInterpolation
 			// 
 			this->tabLagrangeInterpolation->BackColor = System::Drawing::SystemColors::Control;
-			this->tabLagrangeInterpolation->Controls->Add(this->pnlGraph);
+			this->tabLagrangeInterpolation->Controls->Add(this->pnlLagrangeGraph);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnAddPoint);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnDeletePoints);
 			this->tabLagrangeInterpolation->Controls->Add(this->label2);
@@ -118,17 +121,19 @@ namespace DiplomskiRad
 			this->tabLagrangeInterpolation->TabIndex = 0;
 			this->tabLagrangeInterpolation->Text = L"Lagranžova interpolacija";
 			// 
-			// pnlGraph
+			// pnlLagrangeGraph
 			// 
-			this->pnlGraph->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
-																																									 | System::Windows::Forms::AnchorStyles::Left)
-																																									| System::Windows::Forms::AnchorStyles::Right));
-			this->pnlGraph->BackColor = System::Drawing::SystemColors::ControlLightLight;
-			this->pnlGraph->ContextMenuStrip = this->contextMenuAddPoint;
-			this->pnlGraph->Location = System::Drawing::Point(194, 18);
-			this->pnlGraph->Name = L"pnlGraph";
-			this->pnlGraph->Size = System::Drawing::Size(332, 298);
-			this->pnlGraph->TabIndex = 7;
+			this->pnlLagrangeGraph->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+																																													 | System::Windows::Forms::AnchorStyles::Left)
+																																													| System::Windows::Forms::AnchorStyles::Right));
+			this->pnlLagrangeGraph->BackColor = System::Drawing::SystemColors::ControlLightLight;
+			this->pnlLagrangeGraph->ContextMenuStrip = this->contextMenuAddPoint;
+			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 18);
+			this->pnlLagrangeGraph->Name = L"pnlLagrangeGraph";
+			this->pnlLagrangeGraph->Size = System::Drawing::Size(332, 298);
+			this->pnlLagrangeGraph->TabIndex = 7;
+			this->pnlLagrangeGraph->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &CalculationForm::pnlLagrangeGraph_MouseMove);
+			this->pnlLagrangeGraph->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &CalculationForm::pnlLagrangeGraph_MouseUp);
 			// 
 			// contextMenuAddPoint
 			// 
@@ -232,6 +237,7 @@ namespace DiplomskiRad
 			// 
 			// tabPage2
 			// 
+			this->tabPage2->BackColor = System::Drawing::SystemColors::Control;
 			this->tabPage2->Location = System::Drawing::Point(4, 25);
 			this->tabPage2->Margin = System::Windows::Forms::Padding(4);
 			this->tabPage2->Name = L"tabPage2";
@@ -239,7 +245,6 @@ namespace DiplomskiRad
 			this->tabPage2->Size = System::Drawing::Size(544, 334);
 			this->tabPage2->TabIndex = 1;
 			this->tabPage2->Text = L"Njutnova interpolacija";
-			this->tabPage2->UseVisualStyleBackColor = true;
 			// 
 			// CalculationForm
 			// 
@@ -262,11 +267,28 @@ namespace DiplomskiRad
 		}
 		#pragma endregion
 	private:
+		//Lagrange
 		System::Void txtNewPointX_TextChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPointY_TextChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnAddPoint_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPoint_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
-};
+		System::Void pnlLagrangeGraph_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
+		System::Void pnlLagrangeGraph_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
+
+		bool AddPointToList();
+		bool IsNewPointValid(PointF ^ newPoint);
+
+
+		bool PerformLagrangeInterpolation();
+
+		Drawing2D::GraphicsState^ currentGraphState;
+		void DrawPoints(Control^ graphArea, array<PointF^>^ points, bool isLastPointInterpolated);
+
+		//mora da se prepravlja
+		///<summary>Addapts the actual values of points to ones relative to the graph panel</summary>
+		array<PointF^>^ calculatePoints(array<PointF^>^ points, Drawing::Size panelSize);
+	};
 }
+

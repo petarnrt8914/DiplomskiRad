@@ -44,7 +44,6 @@ inline Void FormLogin::btnLogin_Click(Object ^sender, EventArgs ^e) {
 	}
 	case DBAccess::Response::OK: {
 		// open calculation form with current user ID
-		//MessageBox::Show("Opening with userID "+id);
 		this->Hide();
 		Form ^f = gcnew CalculationForm(id);
 		f->ShowDialog();
@@ -80,7 +79,9 @@ inline void FormLogin::HandleResponse(DBAccess::Response response) {
 }
 
 inline bool FormLogin::IsUsernameValid(String ^ username) {
-	return usernameRegex->IsMatch(username) && username->Length <= 25 && username->Length >= 3;
+	return (usernameRegex->IsMatch(username)
+					&& username->Length <= 25
+					&& username->Length >= 3);
 	//try {
 	//	usernameValidator->Validate(username);
 	//	return username->Length <= 25 && username->Length >= 3;

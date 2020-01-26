@@ -126,6 +126,7 @@ DBAccess::Response DBAccess::SignUp(int& userID, String ^ username, String ^ pas
 		}
 		catch (Exception^ ex) {
 			MessageBox::Show(ex->Message+'\n'+ex->StackTrace);
+			return Response::ConnectionFailed;
 		}
 		finally {
 			delete cmdSelectUser;
@@ -158,6 +159,8 @@ DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
 		}
 		catch (Exception^ ex) {
 			MessageBox::Show(ex->Message+'\n'+ex->StackTrace);
+			return Response::ConnectionFailed;
+
 		}
 		finally {
 			delete cmdInsertLogRecord;

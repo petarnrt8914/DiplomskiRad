@@ -13,6 +13,6 @@ public:
 																		 array<double>^ baricentricWeights, float newPointX);
 
 
-
+	static float NewtonInterpolation();
 };
 
