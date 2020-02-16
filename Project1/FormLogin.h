@@ -140,7 +140,7 @@ namespace DiplomskiRad
 			this->MaximumSize = System::Drawing::Size(500, 258);
 			this->MinimumSize = System::Drawing::Size(300, 227);
 			this->Name = L"FormLogin";
-			this->Text = L"FormLogin";
+			this->Text = L"Log in";
 			this->Shown += gcnew System::EventHandler(this, &FormLogin::FormLogin_Shown);
 			this->ResumeLayout(false);
 			this->PerformLayout();
