@@ -142,7 +142,7 @@ DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
 	cmdInsertLogRecord->CommandText = ("INSERT INTO [LOG] ([date_time], [user_ID], [math_op_ID], [param_values]) "
 																		 "VALUES (?,?,?,?)");
 	cmdInsertLogRecord->Connection = conn;
-	//TODO otkrij kako da upises datetime u glupu bazu
+	//FIXED otkrij kako da upises datetime u glupu bazu
 	// verovatno je do glupog formata........... naravno da jeste
 	String ^ dateString = record->getDateTime().ToString("yyyy-MM-dd HH:mm:ss");
 	cmdInsertLogRecord->Parameters->AddWithValue("date_time",		dateString							);
@@ -151,7 +151,6 @@ DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
 	cmdInsertLogRecord->Parameters->AddWithValue("param_values",record->getParameters()	);
 	if (OpenConnection()) {
 		try {
-			// TODO: NE RADI
 			Response resp = (cmdInsertLogRecord->ExecuteNonQuery()==1
 											 ? Response::OK
 											 : Response::ConnectionFailed);
@@ -163,7 +162,7 @@ DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
 
 		}
 		finally {
-			delete cmdInsertLogRecord;
+			//delete cmdInsertLogRecord;
 			conn->Close();
 		}
 	}
