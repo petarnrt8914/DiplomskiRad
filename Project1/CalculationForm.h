@@ -22,6 +22,14 @@ namespace DiplomskiRad
 		Dictionary<String^,int>^ mathOperations;
 		//MAYBE get users
 		PointF ^L_Interpolated, ^N_Interpolated; // for keeping current interpolated points
+	private: System::Windows::Forms::Label^  label3;
+	private: System::Windows::Forms::CheckBox^  checkBox2;
+	private: System::Windows::Forms::CheckBox^  checkBox1;
+
+
+	protected:
+
+
 
 		enum class InterpolationMethod { None, Lagrange, Newton, All };
 
@@ -54,10 +62,6 @@ namespace DiplomskiRad
 	private: System::Windows::Forms::TextBox^  txtNewPointX;
 	private: System::Windows::Forms::ListBox^  listPoints;
 	private: System::Windows::Forms::Panel^  pnlLagrangeGraph;
-
-
-
-
 	private: System::ComponentModel::IContainer^  components;
 
 	private:
@@ -83,6 +87,9 @@ namespace DiplomskiRad
 			this->txtNewPointX = (gcnew System::Windows::Forms::TextBox());
 			this->listPoints = (gcnew System::Windows::Forms::ListBox());
 			this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
+			this->checkBox2 = (gcnew System::Windows::Forms::CheckBox());
 			this->tabControl1->SuspendLayout();
 			this->tabLagrangeInterpolation->SuspendLayout();
 			this->SuspendLayout();
@@ -96,12 +103,15 @@ namespace DiplomskiRad
 			this->tabControl1->Margin = System::Windows::Forms::Padding(4);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(552, 363);
+			this->tabControl1->Size = System::Drawing::Size(619, 389);
 			this->tabControl1->TabIndex = 0;
 			// 
 			// tabLagrangeInterpolation
 			// 
 			this->tabLagrangeInterpolation->BackColor = System::Drawing::SystemColors::Control;
+			this->tabLagrangeInterpolation->Controls->Add(this->checkBox2);
+			this->tabLagrangeInterpolation->Controls->Add(this->checkBox1);
+			this->tabLagrangeInterpolation->Controls->Add(this->label3);
 			this->tabLagrangeInterpolation->Controls->Add(this->pnlLagrangeGraph);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnAddPointOrInterpolate);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnDeletePoints);
@@ -114,7 +124,7 @@ namespace DiplomskiRad
 			this->tabLagrangeInterpolation->Margin = System::Windows::Forms::Padding(4);
 			this->tabLagrangeInterpolation->Name = L"tabLagrangeInterpolation";
 			this->tabLagrangeInterpolation->Padding = System::Windows::Forms::Padding(15);
-			this->tabLagrangeInterpolation->Size = System::Drawing::Size(544, 334);
+			this->tabLagrangeInterpolation->Size = System::Drawing::Size(611, 360);
 			this->tabLagrangeInterpolation->TabIndex = 0;
 			this->tabLagrangeInterpolation->Text = L"Lagranžova interpolacija";
 			// 
@@ -124,10 +134,10 @@ namespace DiplomskiRad
 																																													 | System::Windows::Forms::AnchorStyles::Left)
 																																													| System::Windows::Forms::AnchorStyles::Right));
 			this->pnlLagrangeGraph->BackColor = System::Drawing::SystemColors::ControlLightLight;
-			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 18);
+			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 36);
 			this->pnlLagrangeGraph->Name = L"pnlLagrangeGraph";
-			this->pnlLagrangeGraph->Size = System::Drawing::Size(332, 298);
-			this->pnlLagrangeGraph->TabIndex = 7;
+			this->pnlLagrangeGraph->Size = System::Drawing::Size(399, 306);
+			this->pnlLagrangeGraph->TabIndex = 5;
 			// 
 			// btnAddPointOrInterpolate
 			// 
@@ -144,7 +154,7 @@ namespace DiplomskiRad
 			// 
 			this->btnDeletePoints->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			this->btnDeletePoints->Enabled = false;
-			this->btnDeletePoints->Location = System::Drawing::Point(22, 287);
+			this->btnDeletePoints->Location = System::Drawing::Point(22, 313);
 			this->btnDeletePoints->Margin = System::Windows::Forms::Padding(4);
 			this->btnDeletePoints->Name = L"btnDeletePoints";
 			this->btnDeletePoints->Size = System::Drawing::Size(154, 28);
@@ -203,7 +213,7 @@ namespace DiplomskiRad
 			this->listPoints->Margin = System::Windows::Forms::Padding(4);
 			this->listPoints->Name = L"listPoints";
 			this->listPoints->SelectionMode = System::Windows::Forms::SelectionMode::MultiExtended;
-			this->listPoints->Size = System::Drawing::Size(154, 180);
+			this->listPoints->Size = System::Drawing::Size(154, 196);
 			this->listPoints->TabIndex = 3;
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
 			// 
@@ -218,11 +228,40 @@ namespace DiplomskiRad
 			this->tabPage2->TabIndex = 1;
 			this->tabPage2->Text = L"Njutnova interpolacija";
 			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(191, 15);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(135, 17);
+			this->label3->TabIndex = 8;
+			this->label3->Text = L"Metod interpolacije: ";
+			// 
+			// checkBox1
+			// 
+			this->checkBox1->AutoSize = true;
+			this->checkBox1->Location = System::Drawing::Point(332, 14);
+			this->checkBox1->Name = L"checkBox1";
+			this->checkBox1->Size = System::Drawing::Size(79, 21);
+			this->checkBox1->TabIndex = 9;
+			this->checkBox1->Text = L"Lagranž";
+			this->checkBox1->UseVisualStyleBackColor = true;
+			// 
+			// checkBox2
+			// 
+			this->checkBox2->AutoSize = true;
+			this->checkBox2->Location = System::Drawing::Point(433, 14);
+			this->checkBox2->Name = L"checkBox2";
+			this->checkBox2->Size = System::Drawing::Size(60, 21);
+			this->checkBox2->TabIndex = 10;
+			this->checkBox2->Text = L"Njutn";
+			this->checkBox2->UseVisualStyleBackColor = true;
+			// 
 			// CalculationForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(552, 363);
+			this->ClientSize = System::Drawing::Size(619, 389);
 			this->Controls->Add(this->tabControl1);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 																								static_cast<System::Byte>(254)));
@@ -261,6 +300,7 @@ namespace DiplomskiRad
 		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
 
 		
+
 };
 }
 
