@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "DBAccess.h"
 
+#define TESTING
+
 namespace DiplomskiRad
 {
 	using namespace System;
@@ -17,13 +19,19 @@ namespace DiplomskiRad
 	/// </summary>
 	public ref class CalculationForm : public System::Windows::Forms::Form
 	{
+	public:
+		enum class InterpolationMethod { None, Lagrange, Newton, Both };
+
 	protected:
 		int userID;
 		Dictionary<String^,int>^ mathOperations;
 		//MAYBE get users
 		PointF ^L_Interpolated, ^N_Interpolated; // for keeping current interpolated points
+		array<PointF^>^ normalizedPoints;
 
-		enum class InterpolationMethod { None, Lagrange, Newton, All };
+
+	protected:
+
 
 	public:
 		CalculationForm(int userID) {
@@ -34,6 +42,17 @@ namespace DiplomskiRad
 			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
 				//mozda nesto
 			}
+
+			#ifdef TESTING
+			listPoints->Items->Add(gcnew PointF(-3, 9));
+			listPoints->Items->Add(gcnew PointF(-1,1));
+			listPoints->Items->Add(gcnew PointF(0,0));
+			listPoints->Items->Add(gcnew PointF(2,4));
+			listPoints->Items->Add(gcnew PointF(4,16));
+
+			txtNewPointX->Text = "2.5";
+			#endif // TESTING
+
 		}
 
 	protected:
@@ -54,12 +73,11 @@ namespace DiplomskiRad
 	private: System::Windows::Forms::TextBox^  txtNewPointX;
 	private: System::Windows::Forms::ListBox^  listPoints;
 	private: System::Windows::Forms::Panel^  pnlLagrangeGraph;
-
-
-
-
 	private: System::ComponentModel::IContainer^  components;
-
+	private: System::Windows::Forms::Label^  label3;
+	private: System::Windows::Forms::RadioButton^  rbNewtonMethod;
+	private: System::Windows::Forms::RadioButton^  rbLagrangeMethod;
+	private: System::Windows::Forms::RadioButton^  rbBothInterpolations;
 	private:
 		/// <summary>
 		/// Required designer variable.
@@ -74,6 +92,10 @@ namespace DiplomskiRad
 		void InitializeComponent(void) {
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
 			this->tabLagrangeInterpolation = (gcnew System::Windows::Forms::TabPage());
+			this->rbBothInterpolations = (gcnew System::Windows::Forms::RadioButton());
+			this->rbNewtonMethod = (gcnew System::Windows::Forms::RadioButton());
+			this->rbLagrangeMethod = (gcnew System::Windows::Forms::RadioButton());
+			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->pnlLagrangeGraph = (gcnew System::Windows::Forms::Panel());
 			this->btnAddPointOrInterpolate = (gcnew System::Windows::Forms::Button());
 			this->btnDeletePoints = (gcnew System::Windows::Forms::Button());
@@ -96,12 +118,16 @@ namespace DiplomskiRad
 			this->tabControl1->Margin = System::Windows::Forms::Padding(4);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(552, 363);
+			this->tabControl1->Size = System::Drawing::Size(619, 389);
 			this->tabControl1->TabIndex = 0;
 			// 
 			// tabLagrangeInterpolation
 			// 
 			this->tabLagrangeInterpolation->BackColor = System::Drawing::SystemColors::Control;
+			this->tabLagrangeInterpolation->Controls->Add(this->rbBothInterpolations);
+			this->tabLagrangeInterpolation->Controls->Add(this->rbNewtonMethod);
+			this->tabLagrangeInterpolation->Controls->Add(this->rbLagrangeMethod);
+			this->tabLagrangeInterpolation->Controls->Add(this->label3);
 			this->tabLagrangeInterpolation->Controls->Add(this->pnlLagrangeGraph);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnAddPointOrInterpolate);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnDeletePoints);
@@ -114,9 +140,50 @@ namespace DiplomskiRad
 			this->tabLagrangeInterpolation->Margin = System::Windows::Forms::Padding(4);
 			this->tabLagrangeInterpolation->Name = L"tabLagrangeInterpolation";
 			this->tabLagrangeInterpolation->Padding = System::Windows::Forms::Padding(15);
-			this->tabLagrangeInterpolation->Size = System::Drawing::Size(544, 334);
+			this->tabLagrangeInterpolation->Size = System::Drawing::Size(611, 360);
 			this->tabLagrangeInterpolation->TabIndex = 0;
 			this->tabLagrangeInterpolation->Text = L"Lagranžova interpolacija";
+			// 
+			// rbBothInterpolations
+			// 
+			this->rbBothInterpolations->AutoSize = true;
+			this->rbBothInterpolations->Location = System::Drawing::Point(501, 13);
+			this->rbBothInterpolations->Name = L"rbBothInterpolations";
+			this->rbBothInterpolations->Size = System::Drawing::Size(53, 21);
+			this->rbBothInterpolations->TabIndex = 11;
+			this->rbBothInterpolations->Text = L"Oba";
+			this->rbBothInterpolations->UseVisualStyleBackColor = true;
+			// 
+			// rbNewtonMethod
+			// 
+			this->rbNewtonMethod->AutoSize = true;
+			this->rbNewtonMethod->Checked = true;
+			this->rbNewtonMethod->Location = System::Drawing::Point(426, 14);
+			this->rbNewtonMethod->Name = L"rbNewtonMethod";
+			this->rbNewtonMethod->Size = System::Drawing::Size(59, 21);
+			this->rbNewtonMethod->TabIndex = 10;
+			this->rbNewtonMethod->TabStop = true;
+			this->rbNewtonMethod->Text = L"Njutn";
+			this->rbNewtonMethod->UseVisualStyleBackColor = true;
+			// 
+			// rbLagrangeMethod
+			// 
+			this->rbLagrangeMethod->AutoSize = true;
+			this->rbLagrangeMethod->Location = System::Drawing::Point(332, 14);
+			this->rbLagrangeMethod->Name = L"rbLagrangeMethod";
+			this->rbLagrangeMethod->Size = System::Drawing::Size(78, 21);
+			this->rbLagrangeMethod->TabIndex = 9;
+			this->rbLagrangeMethod->Text = L"Lagranž";
+			this->rbLagrangeMethod->UseVisualStyleBackColor = true;
+			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(191, 15);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(135, 17);
+			this->label3->TabIndex = 8;
+			this->label3->Text = L"Metod interpolacije: ";
 			// 
 			// pnlLagrangeGraph
 			// 
@@ -124,10 +191,11 @@ namespace DiplomskiRad
 																																													 | System::Windows::Forms::AnchorStyles::Left)
 																																													| System::Windows::Forms::AnchorStyles::Right));
 			this->pnlLagrangeGraph->BackColor = System::Drawing::SystemColors::ControlLightLight;
-			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 18);
+			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 36);
 			this->pnlLagrangeGraph->Name = L"pnlLagrangeGraph";
-			this->pnlLagrangeGraph->Size = System::Drawing::Size(332, 298);
-			this->pnlLagrangeGraph->TabIndex = 7;
+			this->pnlLagrangeGraph->Size = System::Drawing::Size(399, 306);
+			this->pnlLagrangeGraph->TabIndex = 5;
+			this->pnlLagrangeGraph->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &CalculationForm::pnlLagrangeGraph_Paint);
 			// 
 			// btnAddPointOrInterpolate
 			// 
@@ -144,7 +212,7 @@ namespace DiplomskiRad
 			// 
 			this->btnDeletePoints->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			this->btnDeletePoints->Enabled = false;
-			this->btnDeletePoints->Location = System::Drawing::Point(22, 287);
+			this->btnDeletePoints->Location = System::Drawing::Point(22, 313);
 			this->btnDeletePoints->Margin = System::Windows::Forms::Padding(4);
 			this->btnDeletePoints->Name = L"btnDeletePoints";
 			this->btnDeletePoints->Size = System::Drawing::Size(154, 28);
@@ -203,7 +271,7 @@ namespace DiplomskiRad
 			this->listPoints->Margin = System::Windows::Forms::Padding(4);
 			this->listPoints->Name = L"listPoints";
 			this->listPoints->SelectionMode = System::Windows::Forms::SelectionMode::MultiExtended;
-			this->listPoints->Size = System::Drawing::Size(154, 180);
+			this->listPoints->Size = System::Drawing::Size(154, 196);
 			this->listPoints->TabIndex = 3;
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
 			// 
@@ -214,7 +282,7 @@ namespace DiplomskiRad
 			this->tabPage2->Margin = System::Windows::Forms::Padding(4);
 			this->tabPage2->Name = L"tabPage2";
 			this->tabPage2->Padding = System::Windows::Forms::Padding(4);
-			this->tabPage2->Size = System::Drawing::Size(544, 334);
+			this->tabPage2->Size = System::Drawing::Size(611, 360);
 			this->tabPage2->TabIndex = 1;
 			this->tabPage2->Text = L"Njutnova interpolacija";
 			// 
@@ -222,7 +290,7 @@ namespace DiplomskiRad
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(552, 363);
+			this->ClientSize = System::Drawing::Size(619, 389);
 			this->Controls->Add(this->tabControl1);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 																								static_cast<System::Byte>(254)));
@@ -243,24 +311,30 @@ namespace DiplomskiRad
 		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPoint_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
+		System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
 
 		bool canAddPointOrInterpolate();
+		property array<PointF^>^ InputPoints { array<PointF^>^ get(); }
+		property InterpolationMethod ChosenInterpolationMethod {InterpolationMethod get();};
 		bool AddPointToList();
 		bool IsNewPointValid(PointF ^ newPoint);
 
 
-		bool PerformLagrangeInterpolation();
+		bool Interpolate();
 
 		Drawing2D::GraphicsState^ currentGraphState; // TODO delete if not working
 		void DrawPoints(Control^ graphArea, array<PointF^>^ points, bool isLastPointInterpolated);
 
 		bool DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
 
+		void DrawNormalizedPoints(Control ^ graphArea, array<PointF^>^ points, PointF^ normalisedInterpolatedPoint, InterpolationMethod method);
+
 		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points);
 		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points, PointF ^% interpolated, InterpolationMethod method);
 		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
 
 		
+
 };
 }
 
