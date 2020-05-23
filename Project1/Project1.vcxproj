@@ -137,6 +137,7 @@
     <ClCompile Include="FormLogin.cpp" />
     <ClCompile Include="CalculationForm.cpp" />
     <ClCompile Include="DBAccess.cpp" />
+    <ClCompile Include="TrangularMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -158,6 +159,7 @@
     <ClInclude Include="DBAccess.h" />
     <ClInclude Include="LogRecord.h" />
     <ClInclude Include="Point.h" />
+    <ClInclude Include="TrangularMatrix.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>

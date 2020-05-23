@@ -26,19 +26,22 @@ namespace DiplomskiRad
 		int userID;
 		Dictionary<String^,int>^ mathOperations;
 		//MAYBE get users
-		PointF ^L_Interpolated, ^N_Interpolated; // for keeping current interpolated points
+		PointF	^L_Interpolated, ^N_Interpolated,	// for keeping current interpolated points
+						^L_Normalized, ^N_Normalized;			// for drawing without recalculating
 		array<PointF^>^ normalizedPoints;
+		InterpolationMethod currentInterpolationMethod;
 
 
 	protected:
 
 
 	public:
-		CalculationForm(int userID) {
+		CalculationForm(int userID)
+			: userID(userID)
+		{
 			InitializeComponent();
 			//currentGraphState = gcnew Drawing2D::GraphicsState();
 
-			this->userID = userID;
 			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
 				//mozda nesto
 			}
@@ -72,7 +75,7 @@ namespace DiplomskiRad
 	private: System::Windows::Forms::TextBox^  txtNewPointY;
 	private: System::Windows::Forms::TextBox^  txtNewPointX;
 	private: System::Windows::Forms::ListBox^  listPoints;
-	private: System::Windows::Forms::Panel^  pnlLagrangeGraph;
+	private: System::Windows::Forms::Panel^  pnlGraphArea;
 	private: System::ComponentModel::IContainer^  components;
 	private: System::Windows::Forms::Label^  label3;
 	private: System::Windows::Forms::RadioButton^  rbNewtonMethod;
@@ -96,7 +99,7 @@ namespace DiplomskiRad
 			this->rbNewtonMethod = (gcnew System::Windows::Forms::RadioButton());
 			this->rbLagrangeMethod = (gcnew System::Windows::Forms::RadioButton());
 			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->pnlLagrangeGraph = (gcnew System::Windows::Forms::Panel());
+			this->pnlGraphArea = (gcnew System::Windows::Forms::Panel());
 			this->btnAddPointOrInterpolate = (gcnew System::Windows::Forms::Button());
 			this->btnDeletePoints = (gcnew System::Windows::Forms::Button());
 			this->label2 = (gcnew System::Windows::Forms::Label());
@@ -128,7 +131,7 @@ namespace DiplomskiRad
 			this->tabLagrangeInterpolation->Controls->Add(this->rbNewtonMethod);
 			this->tabLagrangeInterpolation->Controls->Add(this->rbLagrangeMethod);
 			this->tabLagrangeInterpolation->Controls->Add(this->label3);
-			this->tabLagrangeInterpolation->Controls->Add(this->pnlLagrangeGraph);
+			this->tabLagrangeInterpolation->Controls->Add(this->pnlGraphArea);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnAddPointOrInterpolate);
 			this->tabLagrangeInterpolation->Controls->Add(this->btnDeletePoints);
 			this->tabLagrangeInterpolation->Controls->Add(this->label2);
@@ -185,17 +188,17 @@ namespace DiplomskiRad
 			this->label3->TabIndex = 8;
 			this->label3->Text = L"Metod interpolacije: ";
 			// 
-			// pnlLagrangeGraph
+			// pnlGraphArea
 			// 
-			this->pnlLagrangeGraph->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+			this->pnlGraphArea->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
 																																													 | System::Windows::Forms::AnchorStyles::Left)
 																																													| System::Windows::Forms::AnchorStyles::Right));
-			this->pnlLagrangeGraph->BackColor = System::Drawing::SystemColors::ControlLightLight;
-			this->pnlLagrangeGraph->Location = System::Drawing::Point(194, 36);
-			this->pnlLagrangeGraph->Name = L"pnlLagrangeGraph";
-			this->pnlLagrangeGraph->Size = System::Drawing::Size(399, 306);
-			this->pnlLagrangeGraph->TabIndex = 5;
-			this->pnlLagrangeGraph->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &CalculationForm::pnlLagrangeGraph_Paint);
+			this->pnlGraphArea->BackColor = System::Drawing::SystemColors::ControlLightLight;
+			this->pnlGraphArea->Location = System::Drawing::Point(194, 36);
+			this->pnlGraphArea->Name = L"pnlGraphArea";
+			this->pnlGraphArea->Size = System::Drawing::Size(399, 306);
+			this->pnlGraphArea->TabIndex = 5;
+			this->pnlGraphArea->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &CalculationForm::pnlLagrangeGraph_Paint);
 			// 
 			// btnAddPointOrInterpolate
 			// 
@@ -315,6 +318,7 @@ namespace DiplomskiRad
 
 		bool canAddPointOrInterpolate();
 		property array<PointF^>^ InputPoints { array<PointF^>^ get(); }
+		property InterpolationMethod CurrentInterpolationMethod {InterpolationMethod get();};
 		property InterpolationMethod ChosenInterpolationMethod {InterpolationMethod get();};
 		bool AddPointToList();
 		bool IsNewPointValid(PointF ^ newPoint);
@@ -327,10 +331,10 @@ namespace DiplomskiRad
 
 		bool DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
 
-		void DrawNormalizedPoints(Control ^ graphArea, array<PointF^>^ points, PointF^ normalisedInterpolatedPoint, InterpolationMethod method);
+		void DrawNormalizedPoints(Control ^ graphArea, array<PointF^>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
 
 		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points);
-		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points, PointF ^% interpolated, InterpolationMethod method);
+		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points, InterpolationMethod method);
 		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
 
 		

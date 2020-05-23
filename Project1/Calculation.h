@@ -1,4 +1,5 @@
 #pragma once
+#include "TrangularMatrix.h"
 //#include <list>
 using System::Drawing::PointF;
 using System::Collections::Generic::List;
@@ -19,9 +20,10 @@ private:
 	static double NewtonBasisPolynomial(array<PointF^>^ points, int length, double newX);
 
 	static List<List<double>^>^ DividedDifferenceTable; //triangular matrix
+	static TriangularMatrix^ DividedDifferenceTable1; //triangular matrix
 
 public:
-	static void FillTable(array<PointF^>^, bool isNewXCloserToStart);
+	//static void FillTable(array<PointF^>^, bool isNewXCloserToStart);
 
 private:
 	static double DividedDifference(array<PointF^>^ points, int start, int end);
