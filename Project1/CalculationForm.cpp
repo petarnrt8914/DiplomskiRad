@@ -3,6 +3,8 @@
 #include "LogRecord.h"
 //#include "Point.h"
 
+#define PRECALCULATE
+
 using DiplomskiRad::CalculationForm;
 using namespace DiplomskiRad;
 using System::Text::StringBuilder;
@@ -33,11 +35,17 @@ Void CalculationForm::btnAddPointOrInterpolate_Click(Object ^ sender, EventArgs 
 									: Interpolate());
 
 	if (success) {
-		array<PointF^>^ points = gcnew array<PointF^>(listPoints->Items->Count);
-		listPoints->Items->CopyTo(points, 0);
 		//DrawPoints(pnlGraphArea, points, false);
-		InterpolationMethod method = isNewPoint ? InterpolationMethod::None : ChosenInterpolationMethod; 
-		DrawPoints(pnlGraphArea, points, method);
+		InterpolationMethod method; // = isNewPoint ? InterpolationMethod::None : ChosenInterpolationMethod; 
+		if (isNewPoint) {
+			method = InterpolationMethod::None;
+		}
+		else {
+			method = ChosenInterpolationMethod;
+			txtNewPointY->Focus();
+			txtNewPointY->SelectAll();
+		}
+		DrawPoints(pnlGraphArea, InputPoints, method);
 	}
 }
 
@@ -81,12 +89,33 @@ Void CalculationForm::listPoints_SelectedIndexChanged(Object^  sender, EventArgs
 	DrawNormalizedPoints(pnlGraphArea, normalizedPoints, selectedIndices, CurrentInterpolationMethod);
 }
 
+Void CalculationForm::listPoints_PreviewKeyDown(Object ^ sender, PreviewKeyDownEventArgs ^ e) {
+	if (e->KeyCode == Keys::Delete){}
+
+	switch (e->KeyCode) {
+	case Keys::A:
+		if (e->Modifiers == Keys::Control)
+			for (int i=0; i<listPoints->Items->Count; ++i)
+				listPoints->SetSelected(i, true);
+		break;
+	case Keys::Delete:
+	case Keys::Back:	//backspace?
+		btnDeletePoints->PerformClick(); break;
+	case Keys::Escape:
+		listPoints->ClearSelected();
+	}
+}
+
 Void CalculationForm::btnDeletePoints_Click(Object^  sender, EventArgs^  e) {
+	array<PointF^>^ points;
 
 	if (listPoints->Items->Count == listPoints->SelectedIndices->Count) { //if removing all
 		listPoints->Items->Clear();
 		btnDeletePoints->Enabled = false;
 		pnlGraphArea->CreateGraphics()->Clear(Color::White); //TEMP clear graph
+		delete reciprocalBaricentricWeights, DividedDifferenceTable;
+		reciprocalBaricentricWeights = nullptr;
+		DividedDifferenceTable = nullptr;
 	}
 	else {
 		// remove selected points from list
@@ -95,16 +124,23 @@ Void CalculationForm::btnDeletePoints_Click(Object^  sender, EventArgs^  e) {
 			if (listPoints->GetSelected(i)) // if item[i] is selected
 				listPoints->Items->RemoveAt(i);
 		}
+		points = InputPoints;
 
+		delete DividedDifferenceTable;
+		DividedDifferenceTable = nullptr;
+		DividedDifferenceTable = gcnew TriangularMatrix(points);
+
+		delete reciprocalBaricentricWeights;
+		reciprocalBaricentricWeights = nullptr;
+		reciprocalBaricentricWeights = Calculation::ReciprocalBaricentricWeights(points);
 		//redraw remaining
 		//DrawPoints(pnlGraphArea, points, false);
-		DrawPoints(pnlGraphArea, InputPoints, InterpolationMethod::None);
+		DrawPoints(pnlGraphArea, points, InterpolationMethod::None);
 	}
 
-	L_Interpolated = nullptr;
-	N_Interpolated = nullptr;
-	L_Normalized = nullptr;
-	N_Normalized = nullptr;
+	L_Interpolated = L_Normalized = 
+	N_Interpolated = N_Normalized = nullptr;
+
 	btnAddPointOrInterpolate->Enabled = canAddPointOrInterpolate();
 }
 
@@ -138,11 +174,11 @@ inline bool CalculationForm::AddPointToList() {
 	if (parseXSuccess && parseYSuccess) {
 		//new Point(x,y)
 		PointF^ newPoint = gcnew PointF(newX, newY);
+		int i; // to be index  of the new point
 
 		//if valid, add to list on the appropriate place so it's sorted by point.X
 		if (IsNewPointValid(newPoint)) {
 			//listPoints->Items->Add(newPoint);
-			int i;
 			for (i=0; i<listPoints->Items->Count; i++) {
 				PointF^ currentPoint = dynamic_cast<PointF^>(listPoints->Items[i]);
 				if (newPoint->X < currentPoint->X) {
@@ -156,6 +192,16 @@ inline bool CalculationForm::AddPointToList() {
 			//if (i==listPoints->Items->Count) // if newPoint.x is the biggest x value
 			//	listPoints->Items->Add(newPoint);
 
+			auto points = InputPoints;
+			if (DividedDifferenceTable == nullptr || DividedDifferenceTable->Expand(newPoint) == false) {
+				delete DividedDifferenceTable;
+				DividedDifferenceTable = gcnew TriangularMatrix(points);
+			}
+			if (reciprocalBaricentricWeights == nullptr)
+				reciprocalBaricentricWeights = Calculation::ReciprocalBaricentricWeights(points);
+			else
+				Calculation::AddBaricentricWeight(reciprocalBaricentricWeights, points, i);
+
 			txtNewPointY->Clear();
 			txtNewPointX->Clear();
 		}
@@ -163,8 +209,8 @@ inline bool CalculationForm::AddPointToList() {
 
 		txtNewPointX->Focus();
 
-		L_Interpolated = nullptr;
-		N_Interpolated = nullptr;
+		L_Interpolated = L_Normalized = 
+		N_Interpolated = N_Normalized = nullptr;
 
 		//draw on graph 
 		////if (listPoints->Items->Count < 3) return ;
@@ -214,8 +260,7 @@ inline bool CalculationForm::Interpolate() {
 
 	if (parseXSuccess) {
 		//get points from list
-		array<PointF^>^ points = gcnew array<PointF^>(listPoints->Items->Count);
-		listPoints->Items->CopyTo(points, 0);
+		array<PointF^>^ points = InputPoints;
 
 		//check if x is between min.x and max.x
 		float minX = points[0]->X,
@@ -233,14 +278,22 @@ inline bool CalculationForm::Interpolate() {
 
 		//interpolate
 		if (method == InterpolationMethod::Lagrange) {
+		 #ifdef PRECALCULATE
+			newY = Calculation::LagrangeInterpolation(points, reciprocalBaricentricWeights, newX);
+		 #else
 			newY = Calculation::LagrangeInterpolation(points, newX);
+		 #endif
 			L_Interpolated = gcnew PointF(newX, newY);
 			N_Interpolated = nullptr;
 			N_Normalized = nullptr;
 			txtNewPointY->Text = newY.ToString();
 		}
 		else if (method == InterpolationMethod::Newton) {
+		 #ifdef PRECALCULATE
+			newY = Calculation::NewtonInterpolation(points, DividedDifferenceTable, newX);
+		 #else
 			newY = Calculation::NewtonInterpolation(points, newX);
+		 #endif
 			N_Interpolated = gcnew PointF(newX, newY);
 			L_Interpolated = nullptr;
 			L_Normalized = nullptr;
@@ -248,15 +301,31 @@ inline bool CalculationForm::Interpolate() {
 		}
 		else // if (method == InterpolationMethod::Both)
 		{
-			 double LagrangeNewY = Calculation::LagrangeInterpolation(points, newX);
-			 L_Interpolated = gcnew PointF(newX, LagrangeNewY);
-			 double NewtonNewY = Calculation::NewtonInterpolation(points, newX);
-			 N_Interpolated = gcnew PointF(newX, NewtonNewY);
-			 if (LagrangeNewY == NewtonNewY)
-				 txtNewPointY->Text = LagrangeNewY.ToString();
-			 else 
+			double LagrangeNewY = Calculation::LagrangeInterpolation(points, newX);
+		 #ifdef PRECALCULATE
+			LagrangeNewY = Calculation::LagrangeInterpolation(points, reciprocalBaricentricWeights, newX);
+		 #else
+			LagrangeNewY = Calculation::LagrangeInterpolation(points, newX);
+		 #endif
+			L_Interpolated = gcnew PointF(newX, LagrangeNewY);
+
+			double NewtonNewY = Calculation::NewtonInterpolation(points, newX);
+		 #ifdef PRECALCULATE
+			NewtonNewY = Calculation::NewtonInterpolation(points, DividedDifferenceTable, newX);
+		 #else
+			NewtonNewY = Calculation::NewtonInterpolation(points, newX);
+		 #endif
+			N_Interpolated = gcnew PointF(newX, NewtonNewY);
+			if (LagrangeNewY == NewtonNewY)
+				txtNewPointY->Text = LagrangeNewY.ToString();
+			else {
+				//ispisuje krace
+				newY = (LagrangeNewY.ToString()->Length < NewtonNewY.ToString()->Length
+								? LagrangeNewY
+								: NewtonNewY);
 				MessageBox::Show("Lagranžov metod interpolacije: f(x) = "+LagrangeNewY+
-												"\nNjutnov metod interpolacije: f(x) = "+NewtonNewY);
+												 "\nNjutnov metod interpolacije: f(x) = "+NewtonNewY);
+			}
 		}
 		//points[points->Length-1] = gcnew PointF(newX, newY); //last element
 
@@ -269,6 +338,16 @@ inline bool CalculationForm::Interpolate() {
 			params.AppendFormat(" ({0}, {1})", point->X, point->Y);
 		}
 		params.Append(" }, Tražena vrednost: "+newX);
+		String^ strMethod;
+		switch (method) {
+		case DiplomskiRad::CalculationForm::InterpolationMethod::Lagrange:
+			strMethod = "Lagranž"; break;
+		case DiplomskiRad::CalculationForm::InterpolationMethod::Newton:
+			strMethod = "Njutn"; break;
+		case DiplomskiRad::CalculationForm::InterpolationMethod::Both:
+			strMethod = "Lagranž i Njutn"; break;
+		}
+		params.Append(", metod interpolacije: "+strMethod);
 
 		int mathOp = (method==InterpolationMethod::Lagrange
 									? this->mathOperations["Lagranžova interpolacija"]
@@ -364,7 +443,7 @@ inline void CalculationForm::DrawNormalizedPoints(
 	//pen = gcnew Pen(Color::Orange, 2.0f);
 	//pen->DashStyle = Drawing2D::DashStyle::Dash;
 	penForNInterpolatedPoint = Pens::Red;
-	penForEmphasis = Pens::Orange;
+	penForEmphasis = Pens::Blue;
 
 	//draw input points
 	for (int i = 0; i<points->Length; i++)

@@ -8,29 +8,32 @@ ref class Calculation abstract
 {
 public:
 	//Lagrange form
-	static float LagrangeInterpolation(array<PointF^>^ points, float newPointX);
+	static double LagrangeInterpolation(array<PointF^>^ points, double newPointX);
 
 	//Baricentric form
-	static float LagrangeInterpolation(array<PointF^>^ points, array<double>^ baricentricWeights, float newPointX);
+	static double LagrangeInterpolation(array<PointF^>^ points, array<double>^ baricentricWeights, double newPointX);
 
+	//reciprocal for better precision
+	static array<double>^ ReciprocalBaricentricWeights(array<PointF^>^ points);
 
-	static float NewtonInterpolation(array<PointF^>^ points, float newPointX);
+	static void AddBaricentricWeight(array<double>^ %existingWeights, array<PointF^>^ points, int indexOfNewPoint);
+
+public:
+	static double NewtonInterpolation(array<PointF^>^ points, double newPointX);
+	static double NewtonInterpolation(array<PointF^>^ points, TriangularMatrix ^ DividedDifferenceTable, double newPointX);
 
 private:
 	static double NewtonBasisPolynomial(array<PointF^>^ points, int length, double newX);
 
-	static List<List<double>^>^ DividedDifferenceTable; //triangular matrix
-	static TriangularMatrix^ DividedDifferenceTable1; //triangular matrix
-
-public:
-	//static void FillTable(array<PointF^>^, bool isNewXCloserToStart);
+	//static TriangularMatrix^ DividedDifferenceTable; //triangular matrix // will move to CalculationForm.cpp
 
 private:
-	static double DividedDifference(array<PointF^>^ points, int start, int end);
+	static double DividedDifference(array<PointF^>^ points, int start, int end); //obsolete
 	//static double ForwardDividedDifference(array<PointF^>^ points, int start, int end);
 	//static double BackwardDividedDifference(array<PointF^>^ points, int start, int end);
 	//
 	//static int BinomialCoefficient(int n, int k);
 	//static int Factorial(int value);
+
 };
 

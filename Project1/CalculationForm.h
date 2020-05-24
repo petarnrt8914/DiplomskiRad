@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DBAccess.h"
+#include "TrangularMatrix.h"
 
 #define TESTING
 
@@ -29,10 +30,10 @@ namespace DiplomskiRad
 		PointF	^L_Interpolated, ^N_Interpolated,	// for keeping current interpolated points
 						^L_Normalized, ^N_Normalized;			// for drawing without recalculating
 		array<PointF^>^ normalizedPoints;
-		InterpolationMethod currentInterpolationMethod;
+		//InterpolationMethod currentInterpolationMethod;
 
-
-	protected:
+		TriangularMatrix^ DividedDifferenceTable;
+		array<double>^ reciprocalBaricentricWeights;
 
 
 	public:
@@ -55,7 +56,6 @@ namespace DiplomskiRad
 
 			txtNewPointX->Text = "2.5";
 			#endif // TESTING
-
 		}
 
 	protected:
@@ -191,8 +191,8 @@ namespace DiplomskiRad
 			// pnlGraphArea
 			// 
 			this->pnlGraphArea->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
-																																													 | System::Windows::Forms::AnchorStyles::Left)
-																																													| System::Windows::Forms::AnchorStyles::Right));
+																																											 | System::Windows::Forms::AnchorStyles::Left)
+																																											| System::Windows::Forms::AnchorStyles::Right));
 			this->pnlGraphArea->BackColor = System::Drawing::SystemColors::ControlLightLight;
 			this->pnlGraphArea->Location = System::Drawing::Point(194, 36);
 			this->pnlGraphArea->Name = L"pnlGraphArea";
@@ -210,6 +210,7 @@ namespace DiplomskiRad
 			this->btnAddPointOrInterpolate->Text = L"Dodaj tačku";
 			this->btnAddPointOrInterpolate->UseVisualStyleBackColor = true;
 			this->btnAddPointOrInterpolate->Click += gcnew System::EventHandler(this, &CalculationForm::btnAddPointOrInterpolate_Click);
+			this->btnAddPointOrInterpolate->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::txtNewPoint_PreviewKeyDown);
 			// 
 			// btnDeletePoints
 			// 
@@ -277,6 +278,7 @@ namespace DiplomskiRad
 			this->listPoints->Size = System::Drawing::Size(154, 196);
 			this->listPoints->TabIndex = 3;
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
+			this->listPoints->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::listPoints_PreviewKeyDown);
 			// 
 			// tabPage2
 			// 
@@ -311,9 +313,10 @@ namespace DiplomskiRad
 	private:
 		System::Void txtNewPoint_TextChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnAddPointOrInterpolate_Click(System::Object^  sender, System::EventArgs^  e);
-		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
-		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPoint_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
+		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
+		System::Void listPoints_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
+		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
 
 		bool canAddPointOrInterpolate();
@@ -323,10 +326,8 @@ namespace DiplomskiRad
 		bool AddPointToList();
 		bool IsNewPointValid(PointF ^ newPoint);
 
-
 		bool Interpolate();
 
-		Drawing2D::GraphicsState^ currentGraphState; // TODO delete if not working
 		void DrawPoints(Control^ graphArea, array<PointF^>^ points, bool isLastPointInterpolated);
 
 		bool DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
@@ -338,6 +339,7 @@ namespace DiplomskiRad
 		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
 
 		
+
 
 };
 }

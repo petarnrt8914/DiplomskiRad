@@ -10,6 +10,7 @@ protected:
 public:
 	//TriangularMatrix(int size);
 	TriangularMatrix(array<PointF^>^);
+	~TriangularMatrix();
 
 protected:
 	void FillTable();
@@ -19,10 +20,11 @@ protected:
 
 public:
 	property double default[int, int] {
-		double get(int,int);
-		void set(int,int,double value);
+public:		double get(int,int);
+protected:	void set(int,int,double value);
 	}
 
+public:
 	property int Length {
 		int get();
 	}

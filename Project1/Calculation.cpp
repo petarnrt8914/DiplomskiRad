@@ -3,7 +3,7 @@ using System::Math;
 
 //#define HIGH_ACCURACY
 
-float Calculation::LagrangeInterpolation(array<PointF^>^ points, float newPointX) {
+double Calculation::LagrangeInterpolation(array<PointF^>^ points, double newPointX) {
 	double result = 0;
 
 	for (int i=0, j; i<points->Length; i++) {
@@ -35,17 +35,62 @@ float Calculation::LagrangeInterpolation(array<PointF^>^ points, float newPointX
 
 
 // True baricentric form
-float Calculation::LagrangeInterpolation(array<PointF^>^ points, array<double>^ baricentricWeights, float newPointX) {
+double Calculation::LagrangeInterpolation(array<PointF^>^ points, array<double>^ reciprocalBaricentricWeights, double newPointX) {
 	double deljenik, delilac;
 	deljenik = delilac = 0;
+	if (reciprocalBaricentricWeights == nullptr)
+		reciprocalBaricentricWeights = ReciprocalBaricentricWeights(points);
 
 	for (int i = 0; i<points->Length; i++) {
-		double temp = baricentricWeights[i] / (newPointX - points[i]->X);
+		double temp = (1/reciprocalBaricentricWeights[i]) / (newPointX - points[i]->X);
 		deljenik += temp * points[i]->Y;
 		delilac += temp;
 	}
 
 	return deljenik/delilac;
+}
+
+array<double>^ Calculation::ReciprocalBaricentricWeights(array<PointF^>^ points) {
+	//initializing
+	auto weights = gcnew array<double>(points->Length);
+	weights[0] = 1.0;
+	//for (int j = 1; j<weights->Length; ++j) {
+	//	weights[j] = points[0]->X - points[j]->X;
+	//}
+	for (int j = 1; j<weights->Length; ++j) {
+		weights[0] *= points[0]->X - points[j]->X;
+		weights[j] = points[j]->X - points[0]->X;
+	}
+
+	//calculating
+	//for (int i = 1, j; i<points->Length; ++i) {
+	//	for (j = 0; j<points->Length; ++j) {
+	//		if (j != i) 
+	//			weights[j] *= points[i]->X - points[j]->X;
+	//	}
+	//}
+	for (int i=1, j; i<points->Length; ++i) {
+		for (j=i+1; j<points->Length; ++j) {
+			weights[i] *= points[i]->X - points[j]->X;
+			weights[j] *= points[j]->X - points[i]->X;
+		}
+	}
+	return weights;
+}
+
+void Calculation::AddBaricentricWeight(array<double>^% existingWeights, array<PointF^>^ points, int indexOfNewPoint) {
+	auto newArrayForWeights = gcnew array<double>(existingWeights->Length+1);
+	newArrayForWeights[indexOfNewPoint] = 1.0;
+
+	for (int i = 0; i<indexOfNewPoint; ++i) {
+		if (i == indexOfNewPoint) continue;
+
+		int originalIndex = i<indexOfNewPoint ? i : i-1;
+		newArrayForWeights[i] = existingWeights[originalIndex] * (points[i]->X - points[indexOfNewPoint]->X);
+		newArrayForWeights[indexOfNewPoint] *= points[indexOfNewPoint]->X - points[i]->X;
+	}
+	delete existingWeights;
+	existingWeights = newArrayForWeights;
 }
 
 
@@ -58,82 +103,11 @@ inline double Calculation::NewtonBasisPolynomial(array<PointF^>^ points, int len
 
 	return result;
 }
-//
-//void Calculation::FillTable(array<PointF^>^ points, bool isNewXCloserToStart) {
-//	//throw gcnew System::NotImplementedException();
-//	if (DividedDifferenceTable != nullptr) {
-//		for (int i=0; i<points->Length; i++)
-//			delete DividedDifferenceTable[i];
-//
-//		delete DividedDifferenceTable;
-//	}
-//	DividedDifferenceTable = gcnew List<List<double>^>(points->Length);
-//
-//	if (isNewXCloserToStart)
-//		for (int i=0, j; i<points->Length; i++) {
-//			DividedDifferenceTable->Add(gcnew List<double>(points->Length));
-//			for (int k=0; k<i; k++) DividedDifferenceTable[i]->Add(0); // vodece nule u donjem trouglu matrice
-//			DividedDifferenceTable[i]->Add(points[i]->Y);
-//
-//			for (j=i-1; j>=0; j--) {
-//				double value = DividedDifferenceTable[j+1]->default[i] - DividedDifferenceTable[j]->default[i-1];
-//				value /= points[i]->X - points[j]->X;
-//				DividedDifferenceTable[j]->Add(value); //[j][i]
-//			}
-//		}
-//	else
-//		for (int i = 0, j; i<points->Length; i++) {
-//			DividedDifferenceTable[i] = gcnew List<double>(i+1);
-//			DividedDifferenceTable[i]->Insert(i, points[i]->Y);
-//
-//			for (j=i-1; j>=0; j--) {
-//				double value = DividedDifferenceTable[i]->default[j+1] - DividedDifferenceTable[i-1]->default[j];
-//				value /= points[i]->X - points[j]->X;
-//				DividedDifferenceTable[i]->Insert(j, value);
-//			}
-//		}
-//}
-//
-//void Calculation::FillTable(array<PointF^>^ points, bool isNewXCloserToStart) {
-//	array<array<double>^>^ DividedDifferenceTable;
-//	//throw gcnew System::NotImplementedException();
-//	if (DividedDifferenceTable != nullptr) {
-//		for (int i = 0; i<points->Length; i++)
-//			delete DividedDifferenceTable[i];
-//
-//		delete DividedDifferenceTable;
-//	}
-//	DividedDifferenceTable = gcnew array<array<double>^>(points->Length);
-//
-//	if (isNewXCloserToStart)
-//		for (int i = 0, j; i<points->Length; i++) {
-//			DividedDifferenceTable[i] = gcnew array<double>(points->Length));
-//			for (int k = 0; k<i; k++) DividedDifferenceTable[i]->Add(0); // vodece nule u donjem trouglu matrice
-//			DividedDifferenceTable[i]->Add(points[i]->Y);
-//
-//			for (j = i-1; j>=0; j--) {
-//				double value = DividedDifferenceTable[j+1]->default[i] - DividedDifferenceTable[j]->default[i-1];
-//				value /= points[i]->X - points[j]->X;
-//				DividedDifferenceTable[j]->Add(value); //[j][i]
-//			}
-//		}
-//	else
-//		for (int i = 0, j; i<points->Length; i++) {
-//			DividedDifferenceTable[i] = gcnew List<double>(i+1);
-//			DividedDifferenceTable[i]->Insert(i, points[i]->Y);
-//
-//			for (j = i-1; j>=0; j--) {
-//				double value = DividedDifferenceTable[i]->default[j+1] - DividedDifferenceTable[i-1]->default[j];
-//				value /= points[i]->X - points[j]->X;
-//				DividedDifferenceTable[i]->Insert(j, value);
-//			}
-//		}
-//}
 
 
 //MAYBE split
 //MAYBE join them to be the same
-double Calculation::DividedDifference(array<PointF^>^ points, int start, int end) {
+inline double Calculation::DividedDifference(array<PointF^>^ points, int start, int end) {
 	if (start==end) return points[start]->Y;
 
 	double result;
@@ -150,9 +124,12 @@ double Calculation::DividedDifference(array<PointF^>^ points, int start, int end
 }
 
 
-//MAYBE change newPointX to double
-float Calculation::NewtonInterpolation(array<PointF^>^ points, float newPointX) {
-	if (points->Length==1) return points[0]->Y;
+double Calculation::NewtonInterpolation(array<PointF^>^ points, double newPointX) {
+	return NewtonInterpolation(points, gcnew TriangularMatrix(points) , newPointX);
+}
+
+
+double Calculation::NewtonInterpolation(array<PointF^>^ points, TriangularMatrix^ DividedDifferenceTable, double newPointX) {
 
 	double newY = 0.0;
 	bool isEqualSpacing = true; //until proven otherwise
@@ -162,23 +139,23 @@ float Calculation::NewtonInterpolation(array<PointF^>^ points, float newPointX) 
 	double spacing = points[1]->X - points[0]->X;
 	if (points->Length>=3) {
 		for (int i=1; i<points->Length-1; i++)
-			if (points[i+1]->X - points[i]->X != spacing) { //TODO check margin of error for subtraction of floats
+			if (static_cast<double>(points[i+1]->X) - points[i]->X != spacing) {
 				isEqualSpacing = false;
 				break;
 			}
 	}
 
-	DividedDifferenceTable1 = gcnew TriangularMatrix(points);
+	if (DividedDifferenceTable == nullptr) DividedDifferenceTable =	gcnew TriangularMatrix(points);
 
 	if (isEqualSpacing) { 
 		double newXRatio;
-		double tmp = 1.0;
+		long double tmp = 1.0;
 
 		if (isNewXCloserToStart) {
 			newXRatio = (newPointX - points[0]->X) / spacing;
 			for (int i=0; i<points->Length; i++) {
 				//Newton forward divided difference formula
-				tmp = DividedDifferenceTable1[i,0];
+				tmp = DividedDifferenceTable[i,0];
 				tmp *= System::Math::Pow(spacing, i);
 				for (int j = 0; j<i; j++)		tmp *= newXRatio - j;
 
@@ -190,7 +167,7 @@ float Calculation::NewtonInterpolation(array<PointF^>^ points, float newPointX) 
 			for (int i=0; i<points->Length; i++) {
 				//Newton backward divided difference formula
 				int last = points->Length-1;
-				tmp = DividedDifferenceTable1[last, last-i];
+				tmp = DividedDifferenceTable[last, last-i];
 				tmp *= System::Math::Pow(spacing, i);
 				for (int j = 0; j<i; j++)		tmp *= newXRatio + j;
 
@@ -201,7 +178,7 @@ float Calculation::NewtonInterpolation(array<PointF^>^ points, float newPointX) 
 	}
 	else // if spacing not equal
 		for (int i = 0; i<points->Length; i++) {
-			double temp = DividedDifferenceTable1[0,i];
+			double temp = DividedDifferenceTable[0,i];
 									//isNewXCloaserToStart
 										//? DividedDifference(points, 0, i)
 										//: DividedDifference(points, i, 0);
