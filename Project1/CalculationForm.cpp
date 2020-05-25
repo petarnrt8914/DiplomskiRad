@@ -3,6 +3,7 @@
 #include "LogRecord.h"
 //#include "Point.h"
 
+//#define PROPORTIONATE_GRAPH
 #define PRECALCULATE
 
 using DiplomskiRad::CalculationForm;
@@ -529,10 +530,30 @@ inline array<PointF^>^ CalculationForm::calculatePoints(
 	} 
 	//max = gcnew PointF();
 	getMinAndMax(points, min, max);
-	float width = max->X - min->X,
+	double width = max->X - min->X,
 				height = max->Y - min->Y;
 	if (width==0) width = 1.0f; //=panelSize.Width;
 	if (height==0) height = 1.0f; //= panelSize.Height;
+
+	#ifdef PROPORTIONATE_GRAPH
+	// TODO simplification
+	double graphRatio = width / height;
+	double graphAreaRatio = static_cast<double>(panelSize.Width) / panelSize.Height;
+
+	double differenceHalf;
+	if (graphRatio > graphAreaRatio) {
+		differenceHalf = (panelSize.Height - height * (panelSize.Width / width))/ (panelSize.Width / width) / 2.0;
+		min->Y -= differenceHalf;
+		max->Y += differenceHalf;
+		height = max->Y - min->Y;
+	}
+	else {
+		differenceHalf = (panelSize.Width - width * (panelSize.Height / height)) / (panelSize.Height / height) / 2.0;
+		min->X -= differenceHalf;
+		max->X += differenceHalf;
+		width = max->X - min->X;
+	}
+	#endif
 
 	//calculating relative position of points
 	auto newPoints = gcnew array<PointF^>(points->Length);
