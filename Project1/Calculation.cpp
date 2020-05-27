@@ -4,7 +4,7 @@ using System::Math;
 //#define HIGH_ACCURACY
 
 double Calculation::LagrangeInterpolation(array<PointF^>^ points, double newPointX) {
-	double result = 0;
+	double newY = 0;
 
 	for (int i=0, j; i<points->Length; i++) {
 	#ifdef HIGH_ACCURACY
@@ -14,23 +14,28 @@ double Calculation::LagrangeInterpolation(array<PointF^>^ points, double newPoin
 		for (j = 0; j<size; j++) {
 			if (j!=i) {
 				deljenikTemp *= (newPointX - points[j]->X);
-				delilacTemp *= (points[i]->X - points[j]->X);
+				delilacTemp *= (static_cast<double>(points[i]->X) - points[j]->X);
 			}
 		}
-		result += deljenikTemp / delilacTemp;
+		newY += deljenikTemp / delilacTemp;
 
 	#else
-		double basisPolynomial = points[i]->Y;
-
-		for (j = 0; j<points->Length; j++)
-			if (j!=i)
-				basisPolynomial *= double(newPointX - points[j]->X) / (points[i]->X - points[j]->X);
-
-		result += basisPolynomial;
+		newY += points[i]->Y * LagrangeBasisPolynomial(points, i, newPointX);
 	#endif
 	}
 
-	return result;
+	return newY;
+}
+
+
+inline double Calculation::LagrangeBasisPolynomial(array<PointF^>^ points, int index, double newPointX) {
+	double basisPolynomial = 1.0;
+
+	for (int j = 0; j<points->Length; j++)
+		if (j!=index)
+			basisPolynomial *= (newPointX - points[j]->X) / (static_cast<double>(points[index]->X) - points[j]->X);
+
+	return basisPolynomial;
 }
 
 
@@ -94,16 +99,19 @@ void Calculation::AddBaricentricWeight(array<double>^% existingWeights, array<Po
 }
 
 
+double Calculation::NewtonInterpolation(array<PointF^>^ points, double newPointX) {
+	return NewtonInterpolation(points, gcnew TriangularMatrix(points) , newPointX);
+}
+
 inline double Calculation::NewtonBasisPolynomial(array<PointF^>^ points, int length, double newX) {
 	double result = 1.0;
 
 	//if length==0 return 1
-	for (int i=0; i<length; i++)
+	for (int i = 0; i<length; i++)
 		result *= newX - points[i]->X;
 
 	return result;
 }
-
 
 //MAYBE split
 //MAYBE join them to be the same
@@ -121,11 +129,6 @@ inline double Calculation::DividedDifference(array<PointF^>^ points, int start, 
 	}
 
 	return result;
-}
-
-
-double Calculation::NewtonInterpolation(array<PointF^>^ points, double newPointX) {
-	return NewtonInterpolation(points, gcnew TriangularMatrix(points) , newPointX);
 }
 
 
@@ -164,9 +167,9 @@ double Calculation::NewtonInterpolation(array<PointF^>^ points, TriangularMatrix
 		}
 		else {
 			newXRatio = (newPointX - points[points->Length-1]->X) / spacing;
+			int last = points->Length-1;
 			for (int i=0; i<points->Length; i++) {
 				//Newton backward divided difference formula
-				int last = points->Length-1;
 				tmp = DividedDifferenceTable[last, last-i];
 				tmp *= System::Math::Pow(spacing, i);
 				for (int j = 0; j<i; j++)		tmp *= newXRatio + j;

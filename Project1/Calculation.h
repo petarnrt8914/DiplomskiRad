@@ -9,6 +9,7 @@ ref class Calculation abstract
 public:
 	//Lagrange form
 	static double LagrangeInterpolation(array<PointF^>^ points, double newPointX);
+	static double LagrangeBasisPolynomial(array<PointF^>^ points, int index, double newPointX);
 
 	//Baricentric form
 	static double LagrangeInterpolation(array<PointF^>^ points, array<double>^ baricentricWeights, double newPointX);

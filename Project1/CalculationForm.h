@@ -199,6 +199,7 @@ namespace DiplomskiRad
 			this->pnlGraphArea->Size = System::Drawing::Size(399, 306);
 			this->pnlGraphArea->TabIndex = 5;
 			this->pnlGraphArea->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &CalculationForm::pnlLagrangeGraph_Paint);
+			this->pnlGraphArea->Resize += gcnew System::EventHandler(this, &CalculationForm::pnlGraphArea_Resize);
 			// 
 			// btnAddPointOrInterpolate
 			// 
@@ -328,19 +329,17 @@ namespace DiplomskiRad
 
 		bool Interpolate();
 
-		void DrawPoints(Control^ graphArea, array<PointF^>^ points, bool isLastPointInterpolated);
+		void DrawEverything(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
 
-		bool DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
+		void DrawLine(Control ^ graphArea, array<PointF>^ normalizedPoints, CalculationForm::InterpolationMethod method);
 
+		void DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
 		void DrawNormalizedPoints(Control ^ graphArea, array<PointF^>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
 
-		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points);
 		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points, InterpolationMethod method);
 		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
-
-		
-
-
+		void getMinAndMax(array<PointF^>^ points, Drawing::Size, PointF ^% min, PointF ^% max);
+private: System::Void pnlGraphArea_Resize(System::Object^  sender, System::EventArgs^  e);
 };
 }
 

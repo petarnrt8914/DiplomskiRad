@@ -3,8 +3,11 @@
 #include "LogRecord.h"
 //#include "Point.h"
 
-//#define PROPORTIONATE_GRAPH
+#define PROPORTIONATE_GRAPH
 #define PRECALCULATE
+
+#define MAX(a,b) (a>b ? a : b)
+#define MIN(a,b) (a<b ? a : b)
 
 using DiplomskiRad::CalculationForm;
 using namespace DiplomskiRad;
@@ -38,15 +41,17 @@ Void CalculationForm::btnAddPointOrInterpolate_Click(Object ^ sender, EventArgs 
 	if (success) {
 		//DrawPoints(pnlGraphArea, points, false);
 		InterpolationMethod method; // = isNewPoint ? InterpolationMethod::None : ChosenInterpolationMethod; 
+		pnlGraphArea->CreateGraphics()->Clear(Color::White);
 		if (isNewPoint) {
 			method = InterpolationMethod::None;
+			DrawPoints(pnlGraphArea, InputPoints, method);
 		}
 		else {
 			method = ChosenInterpolationMethod;
 			txtNewPointY->Focus();
 			txtNewPointY->SelectAll();
+			DrawEverything(pnlGraphArea, InputPoints, method);
 		}
-		DrawPoints(pnlGraphArea, InputPoints, method);
 	}
 }
 
@@ -82,17 +87,15 @@ Void CalculationForm::listPoints_SelectedIndexChanged(Object^  sender, EventArgs
 	}
 	else {
 		btnDeletePoints->Enabled = true;
-	//TODO visually emphasise selected points
+
 		selectedIndices = gcnew array<int>(listPoints->SelectedIndices->Count);
 		listPoints->SelectedIndices->CopyTo(selectedIndices, 0);
 	}
-
-	DrawNormalizedPoints(pnlGraphArea, normalizedPoints, selectedIndices, CurrentInterpolationMethod);
+	DrawEverything(pnlGraphArea, InputPoints, CurrentInterpolationMethod);
+	//DrawNormalizedPoints(pnlGraphArea, normalizedPoints, selectedIndices, CurrentInterpolationMethod);
 }
 
 Void CalculationForm::listPoints_PreviewKeyDown(Object ^ sender, PreviewKeyDownEventArgs ^ e) {
-	if (e->KeyCode == Keys::Delete){}
-
 	switch (e->KeyCode) {
 	case Keys::A:
 		if (e->Modifiers == Keys::Control)
@@ -100,7 +103,7 @@ Void CalculationForm::listPoints_PreviewKeyDown(Object ^ sender, PreviewKeyDownE
 				listPoints->SetSelected(i, true);
 		break;
 	case Keys::Delete:
-	case Keys::Back:	//backspace?
+	case Keys::Back:	//backspace
 		btnDeletePoints->PerformClick(); break;
 	case Keys::Escape:
 		listPoints->ClearSelected();
@@ -109,7 +112,7 @@ Void CalculationForm::listPoints_PreviewKeyDown(Object ^ sender, PreviewKeyDownE
 
 Void CalculationForm::btnDeletePoints_Click(Object^  sender, EventArgs^  e) {
 	array<PointF^>^ points;
-
+	
 	if (listPoints->Items->Count == listPoints->SelectedIndices->Count) { //if removing all
 		listPoints->Items->Clear();
 		btnDeletePoints->Enabled = false;
@@ -119,23 +122,24 @@ Void CalculationForm::btnDeletePoints_Click(Object^  sender, EventArgs^  e) {
 		DividedDifferenceTable = nullptr;
 	}
 	else {
+		listPoints->SelectedIndexChanged -= gcnew EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged); // STUPID WORKAROUND
 		// remove selected points from list
 		int i = listPoints->Items->Count - 1;
 		for (; i>=0; i--) {
 			if (listPoints->GetSelected(i)) // if item[i] is selected
 				listPoints->Items->RemoveAt(i);
 		}
+		listPoints->SelectedIndexChanged -= gcnew EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
+
 		points = InputPoints;
 
 		delete DividedDifferenceTable;
-		DividedDifferenceTable = nullptr;
 		DividedDifferenceTable = gcnew TriangularMatrix(points);
 
 		delete reciprocalBaricentricWeights;
-		reciprocalBaricentricWeights = nullptr;
 		reciprocalBaricentricWeights = Calculation::ReciprocalBaricentricWeights(points);
 		//redraw remaining
-		//DrawPoints(pnlGraphArea, points, false);
+		pnlGraphArea->CreateGraphics()->Clear(Color::White);
 		DrawPoints(pnlGraphArea, points, InterpolationMethod::None);
 	}
 
@@ -156,13 +160,8 @@ Void CalculationForm::txtNewPoint_PreviewKeyDown(Object ^ sender, PreviewKeyDown
 
 
 Void CalculationForm::pnlLagrangeGraph_Paint(Object ^ sender, PaintEventArgs ^ e) {
-	InterpolationMethod method = InterpolationMethod::None;
-	if (L_Interpolated != nullptr)
-		method = (N_Interpolated != nullptr) ? InterpolationMethod::Both : InterpolationMethod::Lagrange;
-	else
-		method = (N_Interpolated != nullptr) ? InterpolationMethod::Newton : InterpolationMethod::None;
-
-	DrawPoints(pnlGraphArea, InputPoints, method); 
+	//DrawEverything(pnlGraphArea, InputPoints, CurrentInterpolationMethod);
+	//DrawPoints(pnlGraphArea, InputPoints, CurrentInterpolationMethod);
 }
 
 
@@ -173,7 +172,6 @@ inline bool CalculationForm::AddPointToList() {
 	bool parseYSuccess = double::TryParse(txtNewPointY->Text, newY);
 
 	if (parseXSuccess && parseYSuccess) {
-		//new Point(x,y)
 		PointF^ newPoint = gcnew PointF(newX, newY);
 		int i; // to be index  of the new point
 
@@ -206,26 +204,19 @@ inline bool CalculationForm::AddPointToList() {
 			txtNewPointY->Clear();
 			txtNewPointX->Clear();
 		}
-		else return false;
+		else return false; //if point is invalid
 
 		txtNewPointX->Focus();
 
 		L_Interpolated = L_Normalized = 
 		N_Interpolated = N_Normalized = nullptr;
-
-		//draw on graph 
-		////if (listPoints->Items->Count < 3) return ;
-		//array<PointF^>^ points = gcnew array<PointF^>(listPoints->Items->Count);
-		//listPoints->Items->CopyTo(points, 0);
-		//
-		//DrawPoints(pnlGraphArea, points, false);
-
-		return true;
+		
+		return true; 
 	}
 	else { //if parse failed
 		MessageBox::Show("Jedna ili obe koordinatne vrednosti nisu validne", "Nevalidan unos",
 										 MessageBoxButtons::OK, MessageBoxIcon::Error);
-		TextBox^ invalid = (parseXSuccess ? txtNewPointX : txtNewPointY);
+		TextBox^ invalid = (parseXSuccess ? txtNewPointY : txtNewPointX);
 		invalid->Focus();
 		invalid->SelectAll();
 		return false;
@@ -239,9 +230,9 @@ inline bool CalculationForm::IsNewPointValid(PointF^ newPoint) {
 			MessageBox::Show("Data tačka je već uneta", "Duplikat", MessageBoxButtons::OK, MessageBoxIcon::Information);
 			return false;
 		}
-		// else if A.x==B.x then change?
+		// else if A.x==B.x then change
 		else if (newPoint->X==point->X) {
-			auto response = MessageBox::Show("Tačka sa datom vrednošću za koordinatu x je već uneta."+
+			auto response = MessageBox::Show("Tačka sa datom vrednošću za koordinatu x je već uneta.\n"+
 																			 "Želite li da je zamenite novom tačkom?", "Druga tačka na datoj koordinati",
 																			 MessageBoxButtons::YesNo, MessageBoxIcon::Question);
 			if (response==System::Windows::Forms::DialogResult::Yes) {
@@ -268,7 +259,7 @@ inline bool CalculationForm::Interpolate() {
 					maxX = points[points->Length-1]->X;
 		if (newX < minX || maxX < newX) {
 			MessageBox::Show(
-				String::Format("Vrednost za interpolaciju mora biti između najmanje ({0}) i najveće vrednosti ({1})", minX, maxX),
+				String::Format("Vrednost za interpolaciju mora biti između najmanje ({0}) j najveće vrednosti ({1})", minX, maxX),
 				"Vrednost van dozvoljenog domena",
 				MessageBoxButtons::OK, MessageBoxIcon::Stop);
 			txtNewPointX->Focus();
@@ -338,28 +329,21 @@ inline bool CalculationForm::Interpolate() {
 		for each (PointF^ point in points) {
 			params.AppendFormat(" ({0}, {1})", point->X, point->Y);
 		}
-		params.Append(" }, Tražena vrednost: "+newX);
-		String^ strMethod;
-		switch (method) {
-		case DiplomskiRad::CalculationForm::InterpolationMethod::Lagrange:
-			strMethod = "Lagranž"; break;
-		case DiplomskiRad::CalculationForm::InterpolationMethod::Newton:
-			strMethod = "Njutn"; break;
-		case DiplomskiRad::CalculationForm::InterpolationMethod::Both:
-			strMethod = "Lagranž i Njutn"; break;
-		}
-		params.Append(", metod interpolacije: "+strMethod);
+		params.Append(" }, Tražena vrednost: " + newX);
 
 		int mathOp = (method==InterpolationMethod::Lagrange
 									? this->mathOperations["Lagranžova interpolacija"]
-									: this->mathOperations["Njutnova interpolacija"]);
+									: (method==InterpolationMethod::Newton
+										 ? this->mathOperations["Njutnova interpolacija"]
+										 : this->mathOperations["Obe interpolacije"])
+									);
 
 		LogRecord record(this->userID, mathOp, params.ToString());
 		//TODO switch when ready for deployment
 		// return DBAccess::UpdateLog(%record) == DBAccess::Response::OK;
 		return true; //TEMP
 	}
-	else {
+	else { //if parse X failed
 		MessageBox::Show("Vrednost za x nije validan broj", "Nevalidan unos",
 										 MessageBoxButtons::OK, MessageBoxIcon::Error);
 		txtNewPointX->Focus();
@@ -369,36 +353,56 @@ inline bool CalculationForm::Interpolate() {
 }
 
 
-//obsolete
-void CalculationForm::DrawPoints(Control^ graphArea, array<PointF^>^ points, bool isLastPointInterpolated) {
-	//add option for different nodes and unaccented interpoints for smoothness
-	// or maybe a curve
-	//MAYBE use PointF^ instead of bool for last parameter
+void CalculationForm::DrawEverything(Control^ graphArea, array<PointF^>^ points, InterpolationMethod method) {
+	graphArea->CreateGraphics()->Clear(Color::White);
+
+	PointF ^lowerBound, ^upperBound;
+	// REPEATED 
+	if (method==InterpolationMethod::Lagrange && L_Interpolated!=nullptr) {
+		lowerBound = gcnew PointF(L_Interpolated->X, L_Interpolated->Y);
+		upperBound = gcnew PointF(L_Interpolated->X, L_Interpolated->Y);
+	}
+	else if (method==InterpolationMethod::Newton && N_Interpolated!=nullptr) {
+		lowerBound = gcnew PointF(N_Interpolated->X, N_Interpolated->Y);
+		upperBound = gcnew PointF(N_Interpolated->X, N_Interpolated->Y);
+	}
+	else if (method==InterpolationMethod::Both && L_Interpolated!=nullptr && N_Interpolated!=nullptr) {
+		lowerBound = gcnew PointF(MIN(L_Interpolated->X, N_Interpolated->X), MIN(L_Interpolated->Y, N_Interpolated->Y));
+		upperBound = gcnew PointF(MAX(L_Interpolated->X, N_Interpolated->X), MAX(L_Interpolated->Y, N_Interpolated->Y));
+	}
+
+	getMinAndMax(points, graphArea->Size, lowerBound, upperBound);
+
+
+
+	DrawPoints(graphArea, points, method);
+}
+
+
+inline void CalculationForm::DrawLine(Control^ graphArea, array<PointF>^ normalizedPoints, InterpolationMethod method) {
+	Pen^ LagrangePen = Pens::Blue;
+	Pen^ NewtonPen = gcnew Pen(Color::Red, 1.5f);
+	NewtonPen->DashStyle = Drawing2D::DashStyle::Dash;
+
 	Graphics^ g = graphArea->CreateGraphics();
-	g->Clear(graphArea->BackColor);
-	int last = points->Length - 1; // index of last point
 
-	auto normalizedPoints = calculatePoints(graphArea->ClientSize, points);
-
-	for (int i=0; i<last; i++) 
-		g->FillEllipse(Brushes::Black, normalizedPoints[i]->X-2.5f, normalizedPoints[i]->Y-2.5f, 5.0f, 5.0f);
-	
-	//cross (optional)
-	//if (isLastPointInterpolated) {
-	//	g->DrawLine(Pens::Blue,
-	//							normalizedPoints[last]->X, 0.0f,
-	//							normalizedPoints[last]->X, static_cast<float>(graphArea->ClientSize.Height));
-	//	g->DrawLine(Pens::Blue,
-	//							0.0f, normalizedPoints[last]->Y,
-	//							static_cast<float>(graphArea->ClientSize.Width), normalizedPoints[last]->Y);
-	//}
-
-	//draw last point in the appropriate color
-	//Brush^ colorOfLastPoint = isLastPointInterpolated ? Brushes::LimeGreen : Brushes::Black;
-	//g->FillEllipse(colorOfLastPoint,
-	//							 normalizedPoints[last]->X - 2.5f,
-	//							 normalizedPoints[last]->Y - 2.5f,
-	//							 5.0f, 5.0f);
+	switch (method) {
+	case DiplomskiRad::CalculationForm::InterpolationMethod::Both:
+	case DiplomskiRad::CalculationForm::InterpolationMethod::Lagrange:
+		if (normalizedPoints->Length > 2)
+			g->DrawLines(LagrangePen, normalizedPoints);
+		else {
+			g->DrawLine(LagrangePen, normalizedPoints[0], normalizedPoints[1]);
+		}
+		if (method != CalculationForm::InterpolationMethod::Both) break;
+	case DiplomskiRad::CalculationForm::InterpolationMethod::Newton:
+		if (normalizedPoints->Length > 2)
+			g->DrawLines(NewtonPen, normalizedPoints);
+		else {
+			g->DrawLine(NewtonPen, normalizedPoints[0], normalizedPoints[1]);
+		}
+		break;
+	}
 }
 
 
@@ -406,14 +410,12 @@ void CalculationForm::DrawPoints(Control^ graphArea, array<PointF^>^ points, boo
 ///<param name="graphArea">The control on which the points will be drawn</param>
 ///<param name="points">Points to be drawn, asside from the interpolated point</param>
 ///<param name="method">Interpolation method that was or will be used</param>
-bool CalculationForm::DrawPoints(Control^ graphArea, array<PointF^>^ points, InterpolationMethod method) {
-
+inline void CalculationForm::DrawPoints(Control^ graphArea, array<PointF^>^ points, InterpolationMethod method) {
 	//fit points (scale them to the panel size)
 	normalizedPoints = calculatePoints(graphArea->ClientSize, points, method);
-
-	DrawNormalizedPoints(graphArea, normalizedPoints, nullptr, method);
-
-	return true; // TODO change to void
+	array<int>^ selectedIndices = gcnew array<int>(listPoints->SelectedIndices->Count);
+	listPoints->SelectedIndices->CopyTo(selectedIndices, 0);
+	DrawNormalizedPoints(graphArea, normalizedPoints, selectedIndices, method);
 }
 
 
@@ -435,7 +437,7 @@ inline void CalculationForm::DrawNormalizedPoints(
 	Pen^	penForEmphasis;
 
 	Graphics^ g = graphArea->CreateGraphics();
-	g->Clear(graphArea->BackColor); //temp
+	//g->Clear(graphArea->BackColor); //temp
 
 	pen = gcnew Pen(Color::Purple, 2.0f);
 	//pen->DashStyle = Drawing2D::DashStyle::
@@ -470,38 +472,8 @@ inline void CalculationForm::DrawNormalizedPoints(
 									 N_Normalized->Y - 4.5f,
 									 9.0f, 9.0f);
 	}
-
-	
-	
 }
 
-
-//obsolete
-inline array<PointF^>^ CalculationForm::calculatePoints(Drawing::Size panelSize, array<PointF^>^ points) {
-	//MAYBE actually make the graph proportionate
-	//TODO add option for interpoints
-
-	//calculating min and max values
-	PointF ^min, ^max;
-	getMinAndMax(points, min, max);
-
-	//calculating proportions of the displayed part of graph
-	auto newPoints = gcnew array<PointF^>(points->Length);
-	float width = max->X - min->X,
-				height = max->Y - min->Y;
-	if (width==0) width = 1; //=panelSize.Width;
-	if (height==0) height = 1; //= panelSize.Height;
-
-	//calculating relative position of points
-	for (int i = 0; i<points->Length; i++) {
-		PointF^ newPoint = gcnew PointF();
-		newPoint->X = ((points[i]->X - min->X) / width) * (panelSize.Width-6) +3;
-		newPoint->Y = (panelSize.Height-6) * (1.0f - (points[i]->Y - min->Y) / height) +3;
-		newPoints[i] = newPoint;
-	}
-
-	return newPoints;
-}
 
 //MAYBE rename to FitPoints
 //TODO add interpoints for a smoother line
@@ -519,7 +491,7 @@ inline array<PointF^>^ CalculationForm::calculatePoints(
 
 	//calculating proportions of the displayed part of graph
 	PointF ^min, ^max;
-	//min = gcnew PointF(); 
+	// REPEATED 
 	if (method==InterpolationMethod::Lagrange && L_Interpolated!=nullptr) {
 		min = gcnew PointF(L_Interpolated->X, L_Interpolated->Y);
 		max = gcnew PointF(L_Interpolated->X, L_Interpolated->Y);
@@ -527,33 +499,22 @@ inline array<PointF^>^ CalculationForm::calculatePoints(
 	else if (method==InterpolationMethod::Newton && N_Interpolated!=nullptr) {
 		min = gcnew PointF(N_Interpolated->X, N_Interpolated->Y);
 		max = gcnew PointF(N_Interpolated->X, N_Interpolated->Y);
-	} 
-	//max = gcnew PointF();
+	}
+	else if (method==InterpolationMethod::Both && L_Interpolated!=nullptr && N_Interpolated!=nullptr) {
+		min = gcnew PointF(MIN(L_Interpolated->X, N_Interpolated->X), MIN(L_Interpolated->Y, N_Interpolated->Y));
+		max = gcnew PointF(MAX(L_Interpolated->X, N_Interpolated->X), MAX(L_Interpolated->Y, N_Interpolated->Y));
+	}
+
+ #ifdef PROPORTIONATE_GRAPH
+	getMinAndMax(points, panelSize, min, max);
+ #else
 	getMinAndMax(points, min, max);
+ #endif
+
 	double width = max->X - min->X,
-				height = max->Y - min->Y;
-	if (width==0) width = 1.0f; //=panelSize.Width;
-	if (height==0) height = 1.0f; //= panelSize.Height;
-
-	#ifdef PROPORTIONATE_GRAPH
-	// TODO simplification
-	double graphRatio = width / height;
-	double graphAreaRatio = static_cast<double>(panelSize.Width) / panelSize.Height;
-
-	double differenceHalf;
-	if (graphRatio > graphAreaRatio) {
-		differenceHalf = (panelSize.Height - height * (panelSize.Width / width))/ (panelSize.Width / width) / 2.0;
-		min->Y -= differenceHalf;
-		max->Y += differenceHalf;
 		height = max->Y - min->Y;
-	}
-	else {
-		differenceHalf = (panelSize.Width - width * (panelSize.Height / height)) / (panelSize.Height / height) / 2.0;
-		min->X -= differenceHalf;
-		max->X += differenceHalf;
-		width = max->X - min->X;
-	}
-	#endif
+	if (width==0) width = 1.0;
+	if (height==0) height = 1.0; 
 
 	//calculating relative position of points
 	auto newPoints = gcnew array<PointF^>(points->Length);
@@ -576,7 +537,7 @@ inline array<PointF^>^ CalculationForm::calculatePoints(
 		N_Normalized->X = ((N_Interpolated->X - min->X) / width) * (panelSize.Width-6) +3;
 		N_Normalized->Y = (panelSize.Height-6) * (1.0f - (N_Interpolated->Y - min->Y) / height) +3;
 	//case InterpolationMethod::None:
-	//default:
+	//default: {}
 	}
 	
 	return newPoints;
@@ -610,6 +571,36 @@ inline void CalculationForm::getMinAndMax(array<PointF^>^ points, PointF^ %min, 
 		else if (points[i]->Y > max->Y)
 			max->Y = points[i]->Y;
 	}
+}
+
+inline void CalculationForm::getMinAndMax(array<PointF^>^ points, Drawing::Size panelSize, PointF^ %min, PointF^ %max) {
+	getMinAndMax(points, min, max);
+
+	double width = max->X - min->X,
+		height = max->Y - min->Y;
+	if (width==0) width = 1.0; //=panelSize.Width;
+	if (height==0) height = 1.0; //= panelSize.Height;
+		
+	double graphRatio = width / height;
+	double graphAreaRatio = static_cast<double>(panelSize.Width) / panelSize.Height;
+
+	double differenceHalf;
+	if (graphRatio > graphAreaRatio) {
+		differenceHalf = (panelSize.Height - height * (panelSize.Width / width))/ (panelSize.Width / width) / 2.0;
+		min->Y -= differenceHalf;
+		max->Y += differenceHalf;
+		height = max->Y - min->Y;
+	}
+	else {
+		differenceHalf = (panelSize.Width - width * (panelSize.Height / height)) / (panelSize.Height / height) / 2.0;
+		min->X -= differenceHalf;
+		max->X += differenceHalf;
+		width = max->X - min->X;
+	}
+}
+
+inline Void DiplomskiRad::CalculationForm::pnlGraphArea_Resize(Object ^ sender, EventArgs ^ e) {
+	DrawEverything(pnlGraphArea, InputPoints, CurrentInterpolationMethod);
 }
 
 
