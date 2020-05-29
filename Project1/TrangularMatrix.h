@@ -5,11 +5,11 @@ ref class TriangularMatrix
 {
 protected:
 	array<array<double>^>^ matrix;
-	array<PointF^>^ points;
+	array<PointF>^ points;
 
 public:
 	//TriangularMatrix(int size);
-	TriangularMatrix(array<PointF^>^);
+	TriangularMatrix(array<PointF>^);
 	~TriangularMatrix();
 
 protected:
@@ -29,6 +29,6 @@ public:
 		int get();
 	}
 
-	bool Expand(PointF^);
+	bool Expand(PointF);
 };
 

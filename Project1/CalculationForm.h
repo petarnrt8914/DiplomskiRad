@@ -29,7 +29,7 @@ namespace DiplomskiRad
 		//MAYBE get users
 		PointF	^L_Interpolated, ^N_Interpolated,	// for keeping current interpolated points
 						^L_Normalized, ^N_Normalized;			// for drawing without recalculating
-		array<PointF^>^ normalizedPoints;
+		array<PointF>^ normalizedPoints;
 		//InterpolationMethod currentInterpolationMethod;
 
 		TriangularMatrix^ DividedDifferenceTable;
@@ -48,13 +48,13 @@ namespace DiplomskiRad
 			}
 
 			#ifdef TESTING
-			listPoints->Items->Add(gcnew PointF(-3, 9));
-			listPoints->Items->Add(gcnew PointF(-1,1));
-			listPoints->Items->Add(gcnew PointF(0,0));
-			listPoints->Items->Add(gcnew PointF(2,4));
-			listPoints->Items->Add(gcnew PointF(4,16));
+			//listPoints->Items->Add(gcnew PointF(-3, 9));
+			listPoints->Items->Add(gcnew PointF(-1,-5));
+			listPoints->Items->Add(gcnew PointF(0, 0));
+			listPoints->Items->Add(gcnew PointF(1,-3));
+			listPoints->Items->Add(gcnew PointF(4, 0));
 
-			txtNewPointX->Text = "2.5";
+			txtNewPointX->Text = "2";
 			#endif // TESTING
 		}
 
@@ -198,7 +198,6 @@ namespace DiplomskiRad
 			this->pnlGraphArea->Name = L"pnlGraphArea";
 			this->pnlGraphArea->Size = System::Drawing::Size(399, 306);
 			this->pnlGraphArea->TabIndex = 5;
-			this->pnlGraphArea->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &CalculationForm::pnlLagrangeGraph_Paint);
 			this->pnlGraphArea->Resize += gcnew System::EventHandler(this, &CalculationForm::pnlGraphArea_Resize);
 			// 
 			// btnAddPointOrInterpolate
@@ -318,10 +317,11 @@ namespace DiplomskiRad
 		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void listPoints_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
-		System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
+		//System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
 
 		bool canAddPointOrInterpolate();
-		property array<PointF^>^ InputPoints { array<PointF^>^ get(); }
+		double useCurrentInterpolation(array<double>^ points, double newX);
+		property array<PointF>^ InputPoints { array<PointF>^ get(); }
 		property InterpolationMethod CurrentInterpolationMethod {InterpolationMethod get();};
 		property InterpolationMethod ChosenInterpolationMethod {InterpolationMethod get();};
 		bool AddPointToList();
@@ -329,16 +329,18 @@ namespace DiplomskiRad
 
 		bool Interpolate();
 
-		void DrawEverything(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
+		void DrawEverything(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
 
-		void DrawLine(Control ^ graphArea, array<PointF>^ normalizedPoints, CalculationForm::InterpolationMethod method);
+		PointF approximateLineEnd(PointF currentPoint, PointF ^ lowerBound, PointF ^ upperBound, InterpolationMethod);
 
-		void DrawPoints(Control ^ graphArea, array<PointF^>^ points, InterpolationMethod method);
-		void DrawNormalizedPoints(Control ^ graphArea, array<PointF^>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
+		void DrawLine(Control ^ graphArea, array<PointF>^ normalizedPoints, InterpolationMethod method);
 
-		array<PointF^>^ calculatePoints(Drawing::Size panelSize, array<PointF^>^ points, InterpolationMethod method);
-		void getMinAndMax(array<PointF^>^ points, PointF ^% min, PointF ^% max);
-		void getMinAndMax(array<PointF^>^ points, Drawing::Size, PointF ^% min, PointF ^% max);
+		void DrawPoints(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
+		void DrawNormalizedPoints(Control ^ graphArea, array<PointF>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
+
+		array<PointF>^ calculatePoints(Drawing::Size panelSize, array<PointF>^ points, InterpolationMethod method);
+		void getMinAndMax(array<PointF>^ points, PointF ^% min, PointF ^% max);
+		void getMinAndMax(array<PointF>^ points, Drawing::Size, PointF ^% min, PointF ^% max);
 private: System::Void pnlGraphArea_Resize(System::Object^  sender, System::EventArgs^  e);
 };
 }

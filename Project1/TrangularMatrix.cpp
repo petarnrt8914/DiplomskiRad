@@ -8,7 +8,7 @@
 //		matrix[i] = gcnew array<double>(i);
 //}
 
-TriangularMatrix::TriangularMatrix(array<PointF^>^ inputPoints) : points(inputPoints) {
+TriangularMatrix::TriangularMatrix(array<PointF>^ inputPoints) : points(inputPoints) {
 	matrix = gcnew array<array<double>^>(inputPoints->Length);
 	for (int i = 0; i<inputPoints->Length; i++)
 		matrix[i] = gcnew array<double>(i+1);
@@ -37,7 +37,7 @@ inline void TriangularMatrix::AddPoint(PointF^ newPoint, int index) {
 
 	for (int j = i-1; j>=0; j--) {
 		long double value = matrix[i][j+1] - matrix[i-1][j];
-		value /= points[i]->X - points[j]->X;
+		value /= points[i].X - points[j].X;
 		matrix[i][j] = value;
 	}
 }
@@ -68,15 +68,15 @@ void TriangularMatrix::default::set(int row, int column, double value) {
 }
 
 
-bool TriangularMatrix::Expand(PointF ^newPoint) {
+bool TriangularMatrix::Expand(PointF newPoint) {
 
 	//add column to the bottom of the matrix
 	matrix->Resize(matrix, matrix->Length+1);
 	matrix[matrix->Length-1] = gcnew array<double>(matrix->Length);
 
-	if (newPoint->X < points[0]->X) {
+	if (newPoint.X < points[0].X) {
 		//add newPoint to points
-		auto temp = gcnew array<PointF^>(points->Length+1);
+		auto temp = gcnew array<PointF>(points->Length+1);
 		points->CopyTo(temp, 1);
 		delete points;
 		points = temp;
@@ -88,16 +88,16 @@ bool TriangularMatrix::Expand(PointF ^newPoint) {
 				matrix[i][j] = matrix[i-1][j-1];
 		}
 
-		matrix[0][0] = newPoint->Y;
+		matrix[0][0] = newPoint.Y;
 		for (int i = 1; i<matrix->Length; ++i) {
 			long double value = matrix[i][1] - matrix[i-1][0];
-			value /= points[i]->X - points[0]->X;
+			value /= points[i].X - points[0].X;
 			matrix[i][0] = value;
 		}
 	}
-	else if (newPoint->X > points[points->Length-1]->X) {
+	else if (newPoint.X > points[points->Length-1].X) {
 		//add newPoint to points
-		auto temp = gcnew array<PointF^>(points->Length+1);
+		auto temp = gcnew array<PointF>(points->Length+1);
 		points->CopyTo(temp, 0);
 		temp[temp->Length-1] = newPoint;
 		delete points;
