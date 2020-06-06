@@ -137,6 +137,7 @@
     <ClCompile Include="FormLogin.cpp" />
     <ClCompile Include="CalculationForm.cpp" />
     <ClCompile Include="DBAccess.cpp" />
+    <ClCompile Include="Point.cpp" />
     <ClCompile Include="TrangularMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>

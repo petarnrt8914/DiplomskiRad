@@ -3,6 +3,7 @@
 #include "TrangularMatrix.h"
 
 #define TESTING
+#define INITIAL_POINTS
 
 namespace DiplomskiRad
 {
@@ -28,33 +29,36 @@ namespace DiplomskiRad
 		Dictionary<String^,int>^ mathOperations;
 		//MAYBE get users
 		PointF	^L_Interpolated, ^N_Interpolated,	// for keeping current interpolated points
-						^L_Normalized, ^N_Normalized;			// for drawing without recalculating
+						^L_Normalized, ^N_Normalized;			// for drawing without recalculating, TODO check if I'm using it at all
+		//MAYBE
+		array<PointF>^ const interpolatedPoints; // 0: Lagrange, 1: Newton
 		array<PointF>^ normalizedPoints;
-		//InterpolationMethod currentInterpolationMethod;
 
 		TriangularMatrix^ DividedDifferenceTable;
 		array<double>^ reciprocalBaricentricWeights;
 
+		Drawing2D::GraphicsState^ currentGraphState; //TODO try to use this when moving the form
 
 	public:
 		CalculationForm(int userID)
-			: userID(userID)
+			: userID(userID), interpolatedPoints(gcnew array<PointF>(2))
 		{
 			InitializeComponent();
-			//currentGraphState = gcnew Drawing2D::GraphicsState();
+			//currentGraphState = this->CreateGraphics()->Save();
 
 			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
 				//mozda nesto
 			}
 
-			#ifdef TESTING
+			#if defined TESTING && defined INITIAL_POINTS
 			//listPoints->Items->Add(gcnew PointF(-3, 9));
-			listPoints->Items->Add(gcnew PointF(-1,-5));
-			listPoints->Items->Add(gcnew PointF(0, 0));
-			listPoints->Items->Add(gcnew PointF(1,-3));
-			listPoints->Items->Add(gcnew PointF(4, 0));
+			listPoints->Items->Add(gcnew PointF(-1.0, -5));
+			listPoints->Items->Add(gcnew PointF(-0.5, -1.125));
+			listPoints->Items->Add(gcnew PointF( 1.0, -3.0));
+			listPoints->Items->Add(gcnew PointF( 3.5, -6.125));
 
-			txtNewPointX->Text = "2";
+			txtNewPointX->Text = "1.5";
+			txtNewPoint_TextChanged(txtNewPointX, nullptr);
 			#endif // TESTING
 		}
 
@@ -66,8 +70,10 @@ namespace DiplomskiRad
 			if (components) delete components;
 		}
 	private: System::Windows::Forms::TabControl^  tabControl1;
-	private: System::Windows::Forms::TabPage^  tabLagrangeInterpolation;
-	private: System::Windows::Forms::TabPage^  tabPage2;
+	private: System::Windows::Forms::TabPage^  tabInterpolation;
+
+
+
 	private: System::Windows::Forms::Button^  btnAddPointOrInterpolate;
 	private: System::Windows::Forms::Button^  btnDeletePoints;
 	private: System::Windows::Forms::Label^  label2;
@@ -94,7 +100,7 @@ namespace DiplomskiRad
 				/// </summary>
 		void InitializeComponent(void) {
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
-			this->tabLagrangeInterpolation = (gcnew System::Windows::Forms::TabPage());
+			this->tabInterpolation = (gcnew System::Windows::Forms::TabPage());
 			this->rbBothInterpolations = (gcnew System::Windows::Forms::RadioButton());
 			this->rbNewtonMethod = (gcnew System::Windows::Forms::RadioButton());
 			this->rbLagrangeMethod = (gcnew System::Windows::Forms::RadioButton());
@@ -107,45 +113,43 @@ namespace DiplomskiRad
 			this->txtNewPointY = (gcnew System::Windows::Forms::TextBox());
 			this->txtNewPointX = (gcnew System::Windows::Forms::TextBox());
 			this->listPoints = (gcnew System::Windows::Forms::ListBox());
-			this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
 			this->tabControl1->SuspendLayout();
-			this->tabLagrangeInterpolation->SuspendLayout();
+			this->tabInterpolation->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// tabControl1
 			// 
-			this->tabControl1->Controls->Add(this->tabLagrangeInterpolation);
-			this->tabControl1->Controls->Add(this->tabPage2);
+			this->tabControl1->Controls->Add(this->tabInterpolation);
 			this->tabControl1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tabControl1->Location = System::Drawing::Point(0, 0);
 			this->tabControl1->Margin = System::Windows::Forms::Padding(4);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(619, 389);
+			this->tabControl1->Size = System::Drawing::Size(574, 389);
 			this->tabControl1->TabIndex = 0;
 			// 
-			// tabLagrangeInterpolation
+			// tabInterpolation
 			// 
-			this->tabLagrangeInterpolation->BackColor = System::Drawing::SystemColors::Control;
-			this->tabLagrangeInterpolation->Controls->Add(this->rbBothInterpolations);
-			this->tabLagrangeInterpolation->Controls->Add(this->rbNewtonMethod);
-			this->tabLagrangeInterpolation->Controls->Add(this->rbLagrangeMethod);
-			this->tabLagrangeInterpolation->Controls->Add(this->label3);
-			this->tabLagrangeInterpolation->Controls->Add(this->pnlGraphArea);
-			this->tabLagrangeInterpolation->Controls->Add(this->btnAddPointOrInterpolate);
-			this->tabLagrangeInterpolation->Controls->Add(this->btnDeletePoints);
-			this->tabLagrangeInterpolation->Controls->Add(this->label2);
-			this->tabLagrangeInterpolation->Controls->Add(this->label1);
-			this->tabLagrangeInterpolation->Controls->Add(this->txtNewPointY);
-			this->tabLagrangeInterpolation->Controls->Add(this->txtNewPointX);
-			this->tabLagrangeInterpolation->Controls->Add(this->listPoints);
-			this->tabLagrangeInterpolation->Location = System::Drawing::Point(4, 25);
-			this->tabLagrangeInterpolation->Margin = System::Windows::Forms::Padding(4);
-			this->tabLagrangeInterpolation->Name = L"tabLagrangeInterpolation";
-			this->tabLagrangeInterpolation->Padding = System::Windows::Forms::Padding(15);
-			this->tabLagrangeInterpolation->Size = System::Drawing::Size(611, 360);
-			this->tabLagrangeInterpolation->TabIndex = 0;
-			this->tabLagrangeInterpolation->Text = L"Lagranžova interpolacija";
+			this->tabInterpolation->BackColor = System::Drawing::SystemColors::Control;
+			this->tabInterpolation->Controls->Add(this->rbBothInterpolations);
+			this->tabInterpolation->Controls->Add(this->rbNewtonMethod);
+			this->tabInterpolation->Controls->Add(this->rbLagrangeMethod);
+			this->tabInterpolation->Controls->Add(this->label3);
+			this->tabInterpolation->Controls->Add(this->pnlGraphArea);
+			this->tabInterpolation->Controls->Add(this->btnAddPointOrInterpolate);
+			this->tabInterpolation->Controls->Add(this->btnDeletePoints);
+			this->tabInterpolation->Controls->Add(this->label2);
+			this->tabInterpolation->Controls->Add(this->label1);
+			this->tabInterpolation->Controls->Add(this->txtNewPointY);
+			this->tabInterpolation->Controls->Add(this->txtNewPointX);
+			this->tabInterpolation->Controls->Add(this->listPoints);
+			this->tabInterpolation->Location = System::Drawing::Point(4, 25);
+			this->tabInterpolation->Margin = System::Windows::Forms::Padding(4);
+			this->tabInterpolation->Name = L"tabInterpolation";
+			this->tabInterpolation->Padding = System::Windows::Forms::Padding(15);
+			this->tabInterpolation->Size = System::Drawing::Size(566, 360);
+			this->tabInterpolation->TabIndex = 0;
+			this->tabInterpolation->Text = L"Interpolacija";
 			// 
 			// rbBothInterpolations
 			// 
@@ -196,7 +200,7 @@ namespace DiplomskiRad
 			this->pnlGraphArea->BackColor = System::Drawing::SystemColors::ControlLightLight;
 			this->pnlGraphArea->Location = System::Drawing::Point(194, 36);
 			this->pnlGraphArea->Name = L"pnlGraphArea";
-			this->pnlGraphArea->Size = System::Drawing::Size(399, 306);
+			this->pnlGraphArea->Size = System::Drawing::Size(354, 306);
 			this->pnlGraphArea->TabIndex = 5;
 			this->pnlGraphArea->Resize += gcnew System::EventHandler(this, &CalculationForm::pnlGraphArea_Resize);
 			// 
@@ -280,32 +284,21 @@ namespace DiplomskiRad
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
 			this->listPoints->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::listPoints_PreviewKeyDown);
 			// 
-			// tabPage2
-			// 
-			this->tabPage2->BackColor = System::Drawing::SystemColors::Control;
-			this->tabPage2->Location = System::Drawing::Point(4, 25);
-			this->tabPage2->Margin = System::Windows::Forms::Padding(4);
-			this->tabPage2->Name = L"tabPage2";
-			this->tabPage2->Padding = System::Windows::Forms::Padding(4);
-			this->tabPage2->Size = System::Drawing::Size(611, 360);
-			this->tabPage2->TabIndex = 1;
-			this->tabPage2->Text = L"Njutnova interpolacija";
-			// 
 			// CalculationForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(619, 389);
+			this->ClientSize = System::Drawing::Size(574, 389);
 			this->Controls->Add(this->tabControl1);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 																								static_cast<System::Byte>(254)));
 			this->Margin = System::Windows::Forms::Padding(4);
-			this->MinimumSize = System::Drawing::Size(515, 345);
+			this->MinimumSize = System::Drawing::Size(590, 345);
 			this->Name = L"CalculationForm";
 			this->Text = L"Matematička izračunavanja";
 			this->tabControl1->ResumeLayout(false);
-			this->tabLagrangeInterpolation->ResumeLayout(false);
-			this->tabLagrangeInterpolation->PerformLayout();
+			this->tabInterpolation->ResumeLayout(false);
+			this->tabInterpolation->PerformLayout();
 			this->ResumeLayout(false);
 
 		}
@@ -317,31 +310,36 @@ namespace DiplomskiRad
 		System::Void listPoints_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void listPoints_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
+		System::Void pnlGraphArea_Resize(System::Object^  sender, System::EventArgs^  e);
 		//System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
 
 		bool canAddPointOrInterpolate();
-		double useCurrentInterpolation(array<double>^ points, double newX);
+		double Interpolate(InterpolationMethod, array<PointF>^ points, double newX);
 		property array<PointF>^ InputPoints { array<PointF>^ get(); }
 		property InterpolationMethod CurrentInterpolationMethod {InterpolationMethod get();};
 		property InterpolationMethod ChosenInterpolationMethod {InterpolationMethod get();};
 		bool AddPointToList();
 		bool IsNewPointValid(PointF ^ newPoint);
 
-		bool Interpolate();
+		bool PerformInterpolation();
 
 		void DrawEverything(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
+		array<array<PointF>^>^ getNormalizedLines(array<PointF>^ points, Drawing::Size graphAreaSize, InterpolationMethod);
+		PointF approximateLineEnd(PointF currentPoint, PointF^ lowerBound, PointF^ upperBound);
+		void DrawLine(Graphics^ g, array<PointF>^ normalizedPoints, InterpolationMethod method);
 
-		PointF approximateLineEnd(PointF currentPoint, PointF ^ lowerBound, PointF ^ upperBound, InterpolationMethod);
-
-		void DrawLine(Control ^ graphArea, array<PointF>^ normalizedPoints, InterpolationMethod method);
-
+		void DrawPoints(Control ^ graphArea, array<PointF>^ points, PointF firstPointOfGraph, InterpolationMethod method);
 		void DrawPoints(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
 		void DrawNormalizedPoints(Control ^ graphArea, array<PointF>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
 
 		array<PointF>^ calculatePoints(Drawing::Size panelSize, array<PointF>^ points, InterpolationMethod method);
+		array<PointF>^ calculatePoints(Drawing::Size panelSize, array<PointF>^ points, PointF ^ firstPointOfGraph, InterpolationMethod method);
+		array<PointF>^ getInterpoints(array<PointF>^ points, InterpolationMethod);
+		array<PointF>^ FitInterpoints(array<PointF>^ interpoints, PointF first, PointF last);
 		void getMinAndMax(array<PointF>^ points, PointF ^% min, PointF ^% max);
 		void getMinAndMax(array<PointF>^ points, Drawing::Size, PointF ^% min, PointF ^% max);
-private: System::Void pnlGraphArea_Resize(System::Object^  sender, System::EventArgs^  e);
+		//RectangleF getMinAndMax(array<PointF>^ points);
+		//RectangleF getMinAndMax(array<PointF>^ points, Drawing::Size graphAreaSize);
 };
 }
 
