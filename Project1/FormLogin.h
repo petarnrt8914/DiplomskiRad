@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "pch.h"
 #include "DBAccess.h"
 
 
@@ -140,7 +141,7 @@ namespace DiplomskiRad
 			this->MaximumSize = System::Drawing::Size(500, 258);
 			this->MinimumSize = System::Drawing::Size(300, 227);
 			this->Name = L"FormLogin";
-			this->Text = L"Log in";
+			this->Text = L"Prijavljivanje";
 			this->Shown += gcnew System::EventHandler(this, &FormLogin::FormLogin_Shown);
 			this->ResumeLayout(false);
 			this->PerformLayout();

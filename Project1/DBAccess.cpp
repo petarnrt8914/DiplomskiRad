@@ -37,12 +37,13 @@ bool DBAccess::SetConn() {
 	if (conn->State == ConnectionState::Open) return true;
 
 	//ako ne uspe, naci bazu koristici FileDialog
-	for (int i = 0; i<3; i++) {
+	for (int i = 0; i<=3; i++) {
 		try {
 			conn->Open(); conn->Close();
 			return true;
 		}
 		catch (Exception^) {
+			if (i==3) return false;
 			MessageBox::Show("Baza podataka nije nađena, nađite je manualno.");
 			OpenFileDialog ^openDB = gcnew OpenFileDialog();
 			openDB->InitialDirectory = "..\\";
@@ -51,13 +52,7 @@ bool DBAccess::SetConn() {
 			conn->ConnectionString = connBuilder->ToString();
 		}
 	}
-	try {
-		conn->Open(); conn->Close();
-		return true;
-	}
-	catch (Exception^) {
-		return false;
-	}
+	return false; // da se debugger ne bi bunio
 }
 
 
@@ -139,12 +134,13 @@ DBAccess::Response DBAccess::SignUp(int& userID, String ^ username, String ^ pas
 
 DBAccess::Response DBAccess::UpdateLog(LogRecord^ record) {
 	OleDbCommand ^cmdInsertLogRecord = gcnew OleDbCommand();
-	cmdInsertLogRecord->CommandText = ("INSERT INTO [LOG] ([date_time], [user_ID], [math_op_ID], [param_values]) "
+	cmdInsertLogRecord->CommandText = ("INSERT INTO [LOG] ([date_time], [user_ID], [math_op_ID], [param_values]) "+
 																		 "VALUES (?,?,?,?)");
 	cmdInsertLogRecord->Connection = conn;
 	//FIXED otkrij kako da upises datetime u glupu bazu
 	// verovatno je do glupog formata........... naravno da jeste
 	String ^ dateString = record->getDateTime().ToString("yyyy-MM-dd HH:mm:ss");
+	//MessageBox::Show(dateString);
 	cmdInsertLogRecord->Parameters->AddWithValue("date_time",		dateString							);
 	cmdInsertLogRecord->Parameters->AddWithValue("user_ID",			record->getUserID()			);
 	cmdInsertLogRecord->Parameters->AddWithValue("math_op_ID",	record->getOperationID());

@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "TrangularMatrix.h"
 //#include <list>
 using System::Drawing::PointF;
@@ -25,8 +26,6 @@ public:
 
 private:
 	static double NewtonBasisPolynomial(array<PointF>^ points, int length, double newX);
-
-	//static TriangularMatrix^ DividedDifferenceTable; //triangular matrix // will move to CalculationForm.cpp
 
 private:
 	static double DividedDifference(array<PointF>^ points, int start, int end); //obsolete

@@ -1,8 +1,6 @@
 #include "Calculation.h"
 using System::Math;
 
-#define HIGH_ACCURACY
-
 double Calculation::LagrangeInterpolation(array<PointF>^ points, double newPointX) {
 	double newY = 0;
 
@@ -120,6 +118,7 @@ inline double Calculation::NewtonBasisPolynomial(array<PointF>^ points, int leng
 
 //MAYBE split
 //MAYBE join them to be the same
+//obsolete
 inline double Calculation::DividedDifference(array<PointF>^ points, int start, int end) {
 	if (start==end) return points[start].Y;
 

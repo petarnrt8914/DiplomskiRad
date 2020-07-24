@@ -5,7 +5,7 @@
 .gitattributes
 
 #Database
-Project/Log*
+Project1/Log*
 
 # User-specific files
 *.suo

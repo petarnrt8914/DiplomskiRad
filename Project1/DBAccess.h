@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "LogRecord.h"
 
 using System::String;

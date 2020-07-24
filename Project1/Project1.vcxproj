@@ -159,6 +159,7 @@
     </ClInclude>
     <ClInclude Include="DBAccess.h" />
     <ClInclude Include="LogRecord.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="TrangularMatrix.h" />
     <ClInclude Include="User.h" />

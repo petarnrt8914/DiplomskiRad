@@ -1,9 +1,7 @@
 ﻿#pragma once
+#include "pch.h"
 #include "DBAccess.h"
 #include "TrangularMatrix.h"
-
-#define TESTING
-#define INITIAL_POINTS
 
 namespace DiplomskiRad
 {
@@ -36,30 +34,16 @@ namespace DiplomskiRad
 
 		TriangularMatrix^ DividedDifferenceTable;
 		array<double>^ reciprocalBaricentricWeights;
-
-		Drawing2D::GraphicsState^ currentGraphState; //TODO try to use this when moving the form
-
 	public:
 		CalculationForm(int userID)
 			: userID(userID), interpolatedPoints(gcnew array<PointF>(2))
 		{
 			InitializeComponent();
-			//currentGraphState = this->CreateGraphics()->Save();
 
 			if (DBAccess::ReadMathOperations(mathOperations)==DBAccess::Response::OK) {
 				//mozda nesto
 			}
 
-			#if defined TESTING && defined INITIAL_POINTS
-			//listPoints->Items->Add(gcnew PointF(-3, 9));
-			listPoints->Items->Add(gcnew PointF(-1.0, -5));
-			listPoints->Items->Add(gcnew PointF(-0.5, -1.125));
-			listPoints->Items->Add(gcnew PointF( 1.0, -3.0));
-			listPoints->Items->Add(gcnew PointF( 3.5, -6.125));
-
-			txtNewPointX->Text = "1.5";
-			txtNewPoint_TextChanged(txtNewPointX, nullptr);
-			#endif // TESTING
 		}
 
 	protected:
@@ -71,8 +55,6 @@ namespace DiplomskiRad
 		}
 	private: System::Windows::Forms::TabControl^  tabControl1;
 	private: System::Windows::Forms::TabPage^  tabInterpolation;
-
-
 
 	private: System::Windows::Forms::Button^  btnAddPointOrInterpolate;
 	private: System::Windows::Forms::Button^  btnDeletePoints;
@@ -115,6 +97,7 @@ namespace DiplomskiRad
 			this->listPoints = (gcnew System::Windows::Forms::ListBox());
 			this->tabControl1->SuspendLayout();
 			this->tabInterpolation->SuspendLayout();
+			//(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numPointRadius))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// tabControl1
@@ -125,12 +108,13 @@ namespace DiplomskiRad
 			this->tabControl1->Margin = System::Windows::Forms::Padding(4);
 			this->tabControl1->Name = L"tabControl1";
 			this->tabControl1->SelectedIndex = 0;
-			this->tabControl1->Size = System::Drawing::Size(574, 389);
+			this->tabControl1->Size = System::Drawing::Size(726, 389);
 			this->tabControl1->TabIndex = 0;
 			// 
 			// tabInterpolation
 			// 
 			this->tabInterpolation->BackColor = System::Drawing::SystemColors::Control;
+			//this->tabInterpolation->Controls->Add(this->numPointRadius);
 			this->tabInterpolation->Controls->Add(this->rbBothInterpolations);
 			this->tabInterpolation->Controls->Add(this->rbNewtonMethod);
 			this->tabInterpolation->Controls->Add(this->rbLagrangeMethod);
@@ -147,7 +131,7 @@ namespace DiplomskiRad
 			this->tabInterpolation->Margin = System::Windows::Forms::Padding(4);
 			this->tabInterpolation->Name = L"tabInterpolation";
 			this->tabInterpolation->Padding = System::Windows::Forms::Padding(15);
-			this->tabInterpolation->Size = System::Drawing::Size(566, 360);
+			this->tabInterpolation->Size = System::Drawing::Size(718, 360);
 			this->tabInterpolation->TabIndex = 0;
 			this->tabInterpolation->Text = L"Interpolacija";
 			// 
@@ -200,7 +184,7 @@ namespace DiplomskiRad
 			this->pnlGraphArea->BackColor = System::Drawing::SystemColors::ControlLightLight;
 			this->pnlGraphArea->Location = System::Drawing::Point(194, 36);
 			this->pnlGraphArea->Name = L"pnlGraphArea";
-			this->pnlGraphArea->Size = System::Drawing::Size(354, 306);
+			this->pnlGraphArea->Size = System::Drawing::Size(506, 306);
 			this->pnlGraphArea->TabIndex = 5;
 			this->pnlGraphArea->Resize += gcnew System::EventHandler(this, &CalculationForm::pnlGraphArea_Resize);
 			// 
@@ -284,11 +268,23 @@ namespace DiplomskiRad
 			this->listPoints->SelectedIndexChanged += gcnew System::EventHandler(this, &CalculationForm::listPoints_SelectedIndexChanged);
 			this->listPoints->PreviewKeyDown += gcnew System::Windows::Forms::PreviewKeyDownEventHandler(this, &CalculationForm::listPoints_PreviewKeyDown);
 			// 
+			// numPointRadius
+			// 
+			//this->numPointRadius->Increment = System::Decimal(gcnew cli::array< System::Int32 >(4) { 5, 0, 0, 65536 });
+			//this->numPointRadius->Location = System::Drawing::Point(577, 13);
+			//this->numPointRadius->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 10, 0, 0, 0 });
+			//this->numPointRadius->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
+			//this->numPointRadius->Name = L"numPointRadius";
+			//this->numPointRadius->Size = System::Drawing::Size(120, 23);
+			//this->numPointRadius->TabIndex = 12;
+			//this->numPointRadius->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 5, 0, 0, 0 });
+			//this->numPointRadius->ValueChanged += gcnew System::EventHandler(this, &CalculationForm::numPointRadius_ValueChanged);
+			// 
 			// CalculationForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(574, 389);
+			this->ClientSize = System::Drawing::Size(726, 389);
 			this->Controls->Add(this->tabControl1);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 																								static_cast<System::Byte>(254)));
@@ -296,14 +292,17 @@ namespace DiplomskiRad
 			this->MinimumSize = System::Drawing::Size(590, 345);
 			this->Name = L"CalculationForm";
 			this->Text = L"Matematička izračunavanja";
+			this->Load += gcnew System::EventHandler(this, &CalculationForm::CalculationForm_Load);
 			this->tabControl1->ResumeLayout(false);
 			this->tabInterpolation->ResumeLayout(false);
 			this->tabInterpolation->PerformLayout();
+			//(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numPointRadius))->EndInit();
 			this->ResumeLayout(false);
 
 		}
 		#pragma endregion
 	private:
+		System::Void CalculationForm_Load(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPoint_TextChanged(System::Object^  sender, System::EventArgs^  e);
 		System::Void btnAddPointOrInterpolate_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void txtNewPoint_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
@@ -311,10 +310,10 @@ namespace DiplomskiRad
 		System::Void listPoints_PreviewKeyDown(System::Object^  sender, System::Windows::Forms::PreviewKeyDownEventArgs^  e);
 		System::Void btnDeletePoints_Click(System::Object^  sender, System::EventArgs^  e);
 		System::Void pnlGraphArea_Resize(System::Object^  sender, System::EventArgs^  e);
-		//System::Void pnlLagrangeGraph_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
 
 		bool canAddPointOrInterpolate();
-		double Interpolate(InterpolationMethod, array<PointF>^ points, double newX);
+		double Interpolate(InterpolationMethod, array<PointF>^, double newX, Object ^ precalculatedPart);
+		double Interpolate(InterpolationMethod, array<PointF>^, double newX);
 		property array<PointF>^ InputPoints { array<PointF>^ get(); }
 		property InterpolationMethod CurrentInterpolationMethod {InterpolationMethod get();};
 		property InterpolationMethod ChosenInterpolationMethod {InterpolationMethod get();};
@@ -324,11 +323,11 @@ namespace DiplomskiRad
 		bool PerformInterpolation();
 
 		void DrawEverything(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
-		array<array<PointF>^>^ getNormalizedLines(array<PointF>^ points, Drawing::Size graphAreaSize, InterpolationMethod);
-		PointF approximateLineEnd(PointF currentPoint, PointF^ lowerBound, PointF^ upperBound);
+		//array<array<PointF>^>^ getNormalizedLines(array<PointF>^ points, Drawing::Size graphAreaSize, InterpolationMethod);
+		//PointF approximateLineEnd(PointF currentPoint, PointF^ lowerBound, PointF^ upperBound);
 		void DrawLine(Graphics^ g, array<PointF>^ normalizedPoints, InterpolationMethod method);
 
-		void DrawPoints(Control ^ graphArea, array<PointF>^ points, PointF firstPointOfGraph, InterpolationMethod method);
+		//void DrawPoints(Control ^ graphArea, array<PointF>^ points, PointF firstPointOfGraph, InterpolationMethod method);
 		void DrawPoints(Control ^ graphArea, array<PointF>^ points, InterpolationMethod method);
 		void DrawNormalizedPoints(Control ^ graphArea, array<PointF>^ points, array<int>^ indicesOfSelectedPoints, InterpolationMethod method);
 
@@ -338,8 +337,6 @@ namespace DiplomskiRad
 		array<PointF>^ FitInterpoints(array<PointF>^ interpoints, PointF first, PointF last);
 		void getMinAndMax(array<PointF>^ points, PointF ^% min, PointF ^% max);
 		void getMinAndMax(array<PointF>^ points, Drawing::Size, PointF ^% min, PointF ^% max);
-		//RectangleF getMinAndMax(array<PointF>^ points);
-		//RectangleF getMinAndMax(array<PointF>^ points, Drawing::Size graphAreaSize);
 };
 }
 

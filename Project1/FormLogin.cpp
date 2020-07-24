@@ -19,6 +19,10 @@ inline Void FormLogin::btnLogin_Click(Object ^sender, EventArgs ^e) {
 										 "-i može imati jedan od znakova (.-_) između alfanumeričkih");
 		return;
 	}
+	if (password->Length < 8 || password->Length > 30) {
+		MessageBox::Show("Lozinka mora imati od 8 do 30 znakova");
+		return;
+	}
 
 	DBAccess::Response response = DBAccess::LogIn(id, username, password);
 

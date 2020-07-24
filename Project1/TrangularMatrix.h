@@ -1,4 +1,6 @@
 #pragma once
+#include "pch.h"
+
 using System::Drawing::PointF;
 
 ref class TriangularMatrix
